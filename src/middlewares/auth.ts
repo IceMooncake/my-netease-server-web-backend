@@ -21,7 +21,6 @@ declare global {
 export function authenticateToken(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1]; // Bearer <token>
-  console.log(token)
   if (!token) return res.status(401).json({ message: "未登录" });
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) return res.status(403).json({ message: "无效或过期的 Token" });
