@@ -5,9 +5,9 @@ import { Response } from 'express'
  * @param res Express Response 对象
  * @param asyncFn 异步业务函数，需返回成功结果（可以是任何）
  */
-export async function handleAsync(
+export async function handleAsync<T>(
   res: Response,
-  asyncFn: () => Promise<any>,
+  asyncFn: () => Promise<T>,
   errorCode: number = 400
 ) {
   try {

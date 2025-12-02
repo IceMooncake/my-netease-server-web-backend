@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express'
+import { Request, Response } from 'express'
 import { territoryService } from '../services/index.ts'
 import {
   ApplyBodySchema,
@@ -9,80 +9,69 @@ import {
   TerritoryIdParamsSchema,
   ProposalIdParamsSchema,
 } from '../schemas/territory.schema.ts'
+import { handleAsync } from '../utils/handleAsync.ts'
 
-export async function apply(req: Request, res: Response, next: NextFunction) {
-  try {
+// apply
+export function apply(req: Request, res: Response) {
+  return handleAsync(res, async () => {
     const user = (req as any).user
     const body = ApplyBodySchema.parse(req.body)
     const id = await territoryService.applyCreateTerritory(user.qq, body.name, body.type, body.cost)
-    res.json({ applicationId: id })
-  } catch (e) {
-    next(e)
-  }
+    return id
+  })
 }
 
-export async function contribute(req: Request, res: Response, next: NextFunction) {
-  try {
+// contribute
+export function contribute(req: Request, res: Response) {
+  return handleAsync(res, async () => {
     const user = (req as any).user
     const params = TerritoryIdParamsSchema.parse(req.params)
     const body = ContributeBodySchema.parse(req.body)
     await territoryService.contributeCredits(user.qq, params.id, body.amount)
-    res.json({ success: true })
-  } catch (e) {
-    next(e)
-  }
+    return true
+  })
 }
 
-export async function proposeSpend(req: Request, res: Response, next: NextFunction) {
-  try {
+// proposeSpend
+export function proposeSpend(req: Request, res: Response) {
+  return handleAsync(res, async () => {
     const user = (req as any).user
     const params = TerritoryIdParamsSchema.parse(req.params)
     const body = ProposeSpendBodySchema.parse(req.body)
-    const pid = await territoryService.createProposal(user.qq, params.id, 'spend', {
-      amount: body.amount,
-    })
-    res.json({ proposalId: pid })
-  } catch (e) {
-    next(e)
-  }
+    const pid = await territoryService.createProposal(user.qq, params.id, 'spend', { amount: body.amount })
+    return pid
+  })
 }
 
-export async function proposeJoin(req: Request, res: Response, next: NextFunction) {
-  try {
+// proposeJoin
+export function proposeJoin(req: Request, res: Response) {
+  return handleAsync(res, async () => {
     const user = (req as any).user
     const params = TerritoryIdParamsSchema.parse(req.params)
     const body = ProposeJoinExpelBodySchema.parse(req.body)
-    const pid = await territoryService.createProposal(user.qq, params.id, 'join', {
-      targetQQ: body.targetQQ,
-    })
-    res.json({ proposalId: pid })
-  } catch (e) {
-    next(e)
-  }
+    const pid = await territoryService.createProposal(user.qq, params.id, 'join', { targetQQ: body.targetQQ })
+    return pid
+  })
 }
 
-export async function proposeExpel(req: Request, res: Response, next: NextFunction) {
-  try {
+// proposeExpel
+export function proposeExpel(req: Request, res: Response) {
+  return handleAsync(res, async () => {
     const user = (req as any).user
     const params = TerritoryIdParamsSchema.parse(req.params)
     const body = ProposeJoinExpelBodySchema.parse(req.body)
-    const pid = await territoryService.createProposal(user.qq, params.id, 'expel', {
-      targetQQ: body.targetQQ,
-    })
-    res.json({ proposalId: pid })
-  } catch (e) {
-    next(e)
-  }
+    const pid = await territoryService.createProposal(user.qq, params.id, 'expel', { targetQQ: body.targetQQ })
+    return pid
+  })
 }
 
-export async function vote(req: Request, res: Response, next: NextFunction) {
-  try {
+// vote
+export function vote(req: Request, res: Response) {
+  return handleAsync(res, async () => {
     const user = (req as any).user
     const params = ProposalIdParamsSchema.parse(req.params)
     const body = VoteBodySchema.parse(req.body)
     await territoryService.voteProposal(user.qq, params.proposalId, body.decision)
-    res.json({ success: true })
-  } catch (e) {
-    next(e)
-  }
+    return true
+  })
 }
