@@ -1,5 +1,8 @@
 // 1. generate openapi.json
-import './generateOpenApi.ts'
+import generateOpenApi from './generateOpenApi.ts'
 
 // 2. generate fontend types
-import './generateApiTypes.ts'
+import generateApiTypes from './generateApiTypes.ts'
+
+generateOpenApi()
+generateApiTypes()
