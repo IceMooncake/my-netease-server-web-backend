@@ -18,7 +18,7 @@ export async function findGroupMemberByQQ(qq: string): Promise<GroupMember | nul
     return rows[0] || null;
 }
 
-export async function createGroupMember(qq: string, status: number): Promise<number> {
+export async function createGroupMember(qq: string, status: 0 | 1): Promise<number> {
     const existingMember = await findGroupMemberByQQ(qq);
     if (existingMember) {
         throw new Error('群成员已存在');
@@ -27,7 +27,7 @@ export async function createGroupMember(qq: string, status: number): Promise<num
     return result.insertId;
 }
 
-export async function updateGroupMemberStatus(qq: string, status: number): Promise<void> {
+export async function updateGroupMemberStatus(qq: string, status: 0 | 1): Promise<void> {
     const member = await findGroupMemberByQQ(qq);
     if (!member) {
         throw new Error('群成员不存在');
