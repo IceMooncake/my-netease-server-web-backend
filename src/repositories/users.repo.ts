@@ -1,5 +1,5 @@
 import { ResultSetHeader, RowDataPacket } from "mysql2";
-import { hashPassword, comparePassword } from "../utils/hash.ts";
+import { comparePassword } from "../utils/hash.ts";
 import { pool } from "../config/mysql.ts";
 
 export interface User extends RowDataPacket {
@@ -7,6 +7,8 @@ export interface User extends RowDataPacket {
     password: string
     nickname?: string
     created_at?: Date
+    personal_credits: number
+    is_admin: boolean
 }
 
 export async function findUserByQQ(qq: string): Promise<User | null> {
@@ -43,4 +45,15 @@ export async function verifyUserPassword(qq: string, password: string): Promise<
     const user = await findUserByQQ(qq);
     if (!user) return false;
     return comparePassword(password, user.password);
+}
+
+export async function addPersonalCredits(qq: string, delta: number) {
+  await pool.execute("UPDATE users SET personal_credits = personal_credits + ? WHERE qq = ?", [delta, qq]);
+}
+
+export async function consumePersonalCredits(qq: string, amount: number) {
+  const [rows] = await pool.execute("SELECT personal_credits FROM users WHERE qq = ? FOR UPDATE", [qq]);
+  const cur = (rows as any[])[0]?.personal_credits ?? 0;
+  if (cur < amount) throw new Error("个人额度不足");
+  await pool.execute("UPDATE users SET personal_credits = personal_credits - ? WHERE qq = ?", [amount, qq]);
 }

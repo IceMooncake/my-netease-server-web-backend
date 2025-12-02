@@ -1,8 +1,13 @@
 // services/authService.ts
+import jwt from 'jsonwebtoken'
 import { comparePassword } from '../utils/hash.ts';
 import otpService from './otp.service.ts';
 import { createUser, findUserByQQ } from '../repositories/users.repo.ts';
 import { findGroupMemberByQQ } from '../repositories/groupMember.repo.ts';
+
+
+const JWT_SECRET = process.env.JWT_SECRET || 'default_secret'
+const JWT_EXPIRES_IN = '7d' // 7天有效
 
 const register = async (qq: string, password: string) => {
   // 检查用户是否在指定的群组中
@@ -31,7 +36,15 @@ async function login(qq: string, password: string) {
   if (!user) throw new Error('用户名或密码错误'); // 用户不存在(不透明错误)
   const isMatch = await comparePassword(password, user.password); // ✅ 使用 bcrypt 比对密码
   if (!isMatch) throw new Error('用户名或密码错误');
-  return user; // 登录成功，返回用户信息（可以后续生成 token）
+  const token = jwt.sign(
+    {
+      qq: user.qq,
+      isAdmin: user.is_admin
+    }, // payload
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN }
+  )
+  return token
 }
 
 export default {

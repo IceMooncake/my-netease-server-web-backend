@@ -21,7 +21,7 @@ export async function handleConfirmRegister(req: Request, res: Response) {
 export async function handleLogin(req: Request, res: Response) {
   const { qq, password } = req.body;
   handleAsync(res, async () => {
-    const user = await authService.login(qq, password);
-    return { msg: '登录成功', user: user.qq };
+    const token = await authService.login(qq, password);
+    return { msg: '登录成功', qq, token };
   }, 401); // 登录失败返回 401 Unauthorized
 }

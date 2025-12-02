@@ -1,6 +1,6 @@
 // index.ts
 import express from 'express';
-import authRoutes from './routes/authRoutes.ts';
+import authRoutes from './routes/index.ts';
 
 // Importing jobs and listeners
 import './jobs/index.ts';
