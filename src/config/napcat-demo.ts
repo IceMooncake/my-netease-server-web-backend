@@ -11,4 +11,6 @@ const napcatConfig = {
     }
 } as const
 
-export { napcatConfig }
+const GROUP_ID = 123456789; // 群号
+
+export { napcatConfig, GROUP_ID }
