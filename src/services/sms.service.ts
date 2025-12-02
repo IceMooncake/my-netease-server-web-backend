@@ -1,11 +1,12 @@
-import prisma from '../database/prisma.ts';
-import { hashPassword } from '../utils/hash.ts';
+import prisma from '../database/prisma.ts'
+import { hashPassword } from '../utils/hash.ts'
 
+// 创建或更新验证码
 async function createVerificationCode(qq: string, password: string): Promise<string> {
   // 查找现有验证码
   const existingCode = await prisma.verification_codes.findFirst({
     where: { qq },
-    orderBy: { expires_at: 'desc' }
+    orderBy: { expires_at: 'desc' },
   })
 
   const now = new Date()
@@ -28,8 +29,8 @@ async function createVerificationCode(qq: string, password: string): Promise<str
         code,
         expires_at: expiresAt,
         password: hashedPassword,
-        verified: false
-      }
+        verified: false,
+      },
     })
 
     return code
@@ -39,22 +40,24 @@ async function createVerificationCode(qq: string, password: string): Promise<str
   return existingCode.code
 }
 
+// 生成验证码并保存到数据库
 async function generateCode(qq: string, password: string) {
   return await createVerificationCode(qq.toString(), password)
 }
 
+// 检查验证码是否已验证
 async function checkIsVerified(qq: string) {
   const row = await prisma.verification_codes.findFirst({
-    where: { qq }
+    where: { qq },
   })
-  
+
   if (!row || !row.verified) {
-    throw new Error('验证码无效');
+    throw new Error('验证码无效')
   }
   await prisma.verification_codes.deleteMany({
-    where: { qq }
-  }); // 验证成功删除验证码记录
-  return row.password; // 返回已验证状态
+    where: { qq },
+  }) // 验证成功删除验证码记录
+  return row.password // 返回已验证状态
 }
 
-export default { generateCode, checkIsVerified };
+export default { generateCode, checkIsVerified }
