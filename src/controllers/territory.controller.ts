@@ -14,7 +14,7 @@ export async function apply(req: Request, res: Response, next: NextFunction) {
 export async function contribute(req: Request, res: Response, next: NextFunction) {
   try {
     const user = (req as any).user;
-    const territoryId = Number(req.params.id);
+    const territoryId = BigInt(req.params.id);
     const { amount } = req.body as { amount: number };
     await Svc.contributeCredits(user.qq, territoryId, amount);
     res.json({ success: true });
@@ -24,7 +24,7 @@ export async function contribute(req: Request, res: Response, next: NextFunction
 export async function proposeSpend(req: Request, res: Response, next: NextFunction) {
   try {
     const user = (req as any).user;
-    const territoryId = Number(req.params.id);
+    const territoryId = BigInt(req.params.id);
     const { amount } = req.body as { amount: number };
     const pid = await Svc.createProposal(user.qq, territoryId, 'spend', { amount });
     res.json({ proposalId: pid });
@@ -34,7 +34,7 @@ export async function proposeSpend(req: Request, res: Response, next: NextFuncti
 export async function proposeJoin(req: Request, res: Response, next: NextFunction) {
   try {
     const user = (req as any).user;
-    const territoryId = Number(req.params.id);
+    const territoryId = BigInt(req.params.id);
     const { targetQQ } = req.body as { targetQQ: string };
     const pid = await Svc.createProposal(user.qq, territoryId, 'join', { targetQQ });
     res.json({ proposalId: pid });
@@ -44,7 +44,7 @@ export async function proposeJoin(req: Request, res: Response, next: NextFunctio
 export async function proposeExpel(req: Request, res: Response, next: NextFunction) {
   try {
     const user = (req as any).user;
-    const territoryId = Number(req.params.id);
+    const territoryId = BigInt(req.params.id);
     const { targetQQ } = req.body as { targetQQ: string };
     const pid = await Svc.createProposal(user.qq, territoryId, 'expel', { targetQQ });
     res.json({ proposalId: pid });

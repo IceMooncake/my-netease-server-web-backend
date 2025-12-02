@@ -1,12 +1,15 @@
 // src/controllers/admin.controller.ts
 import { Request, Response, NextFunction } from "express";
-import * as Apps from "../repositories/applications.repo.ts";
 import * as Svc from "../services/territory.service.ts";
+import prisma from "../database/prisma.ts";
 
 export async function listApplications(req: Request, res: Response, next: NextFunction) {
   try {
     const { status } = req.query as any;
-    const list = await Apps.listApplications(status);
+    const list = await prisma.territory_applications.findMany({
+      where: status ? { status } : undefined,
+      orderBy: { id: 'desc' },
+    })
     res.json(list);
   } catch (e) { next(e); }
 }

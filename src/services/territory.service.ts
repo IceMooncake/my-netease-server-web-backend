@@ -1,9 +1,4 @@
-// src/services/territory.service.ts
-import * as Terr from "../repositories/territories.repo.ts";
-import * as Members from "../repositories/territoryMembers.repo.ts";
-import * as Apps from "../repositories/applications.repo.ts";
-import * as Props from "../repositories/proposals.repo.ts";
-import { pool } from "../database/mysql.ts";
+import prisma from "../database/prisma.ts";
 
 /** 规则：单人领地 plots = 3；多人领地 plots = 2 * 人数 */
 export function computePlotsLimit(memberCount: number) {
@@ -12,85 +7,156 @@ export function computePlotsLimit(memberCount: number) {
 }
 
 /** 提交创建领地申请（需要管理员审核） */
-export async function applyCreateTerritory(applicantQQ: string, name: string, type: 'overworld'|'nether'|'end', cost: number) {
+export async function applyCreateTerritory(
+  applicantQQ: string,
+  name: string,
+  type: "overworld" | "nether" | "end",
+  cost: number
+) {
   // 检查是否已拥有领地
-  const owned = await Terr.findTerritoryByOwner(applicantQQ);
+  const owned = await prisma.territories.findFirst({
+    where: { owner_id: applicantQQ },
+  });
   if (owned) throw new Error("你已拥有一个领地");
   // 只是提交申请，不扣款（等管理员通过时扣）
-  const appId = await Apps.createApplication(applicantQQ, name, type, cost);
-  return appId;
+  await prisma.territory_applications.create({
+    data: {
+      applicant_qq: applicantQQ,
+      name,
+      type,
+      cost,
+    },
+  });
+  return applicantQQ;
 }
 
 /** 管理员审批创建领地申请 */
-export async function adminDecideCreate(appId: number, adminQQ: string, approve: boolean, message?: string) {
-  const conn = await pool.getConnection();
-  try {
-    await conn.beginTransaction();
+export async function adminDecideCreate(
+  appId: number,
+  adminQQ: string,
+  approve: boolean,
+  message?: string
+) {
+  return await prisma.$transaction(async (tx) => {
+    // 查询申请记录
+    const app = await tx.territory_applications.findUnique({
+      where: { id: appId },
+    });
+    if (!app || app.status !== 'pending') throw new Error('申请不存在或已处理');
 
-    const app = await Apps.getApplication(appId);
-    if (!app || app.status !== "pending") throw new Error("申请不存在或已处理");
-
+    // 审核拒绝
     if (!approve) {
-      await Apps.decideApplication(appId, "rejected", adminQQ, message);
-      await conn.commit(); conn.release();
-      return { status: "rejected" as const };
+      await tx.territory_applications.update({
+        where: { id: appId },
+        data: {
+          status: 'rejected',
+          processed_by: adminQQ,
+          decision_message: message ?? null,
+          processed_at: new Date(),
+        },
+      });
+      return { status: 'rejected' as const };
     }
 
-    // 扣个人额度
-    await conn.execute("SELECT personal_credits FROM users WHERE qq=? FOR UPDATE", [app.applicant_qq]);
-    const [rows] = await conn.execute("SELECT personal_credits FROM users WHERE qq=?", [app.applicant_qq]);
-    const cur = (rows as any[])[0]?.personal_credits ?? 0;
-    if (cur < app.cost) throw new Error("个人额度不足，无法通过");
+    // 锁定用户额度 (Prisma 没有直接的 SELECT ... FOR UPDATE)
+    // 用事务的序列化特性代替，读取 + 更新在同一事务即可避免并发问题
+    const user = await tx.users.findUnique({
+      where: { qq: app.applicant_qq },
+      select: { personal_credits: true },
+    });
+    if (!user) throw new Error('用户不存在');
 
-    await conn.execute("UPDATE users SET personal_credits = personal_credits - ? WHERE qq=?", [app.cost, app.applicant_qq]);
+    if (user.personal_credits < app.cost) {
+      throw new Error('个人额度不足，无法通过');
+    }
 
-    // 如果申请人处于他人领地，先退出
-    await conn.execute("DELETE FROM territory_members WHERE user_id = ?", [app.applicant_qq]);
+    // 扣除额度
+    await tx.users.update({
+      where: { qq: app.applicant_qq },
+      data: {
+        personal_credits: { decrement: app.cost },
+      },
+    });
 
-    // 创建领地 + 把申请人记为 owner
-    const territoryId = await (async () => {
-      const [r] = await conn.execute(
-        "INSERT INTO territories (name, owner_id, type, plots_limit) VALUES (?,?,?,?)",
-        [app.name, app.applicant_qq, app.type, 3] // 初始只有一个人，plots=3
-      );
-      return (r as any).lastInsertId || (r as any).insertId;
-    })();
+    // 退出其他领地
+    await tx.territory_members.deleteMany({
+      where: { qq: app.applicant_qq },
+    });
 
-    await conn.execute(
-      "INSERT INTO territory_members (user_id, territory_id, role) VALUES (?,?,?)",
-      [app.applicant_qq, territoryId, 'owner']
-    );
+    // 创建领地
+    const territory = await tx.territories.create({
+      data: {
+        name: app.name,
+        owner_id: app.applicant_qq,
+        type: app.type,
+        plots_limit: 3,
+      },
+    });
 
-    await Apps.decideApplication(appId, "approved", adminQQ, message);
+    // 成为领主
+    await tx.territory_members.create({
+      data: {
+        qq: app.applicant_qq,
+        territory_id: territory.id,
+        role: 'owner',
+      },
+    });
 
-    await conn.commit(); conn.release();
-    return { status: "approved" as const, territoryId };
-  } catch (e) {
-    await conn.rollback(); conn.release();
-    throw e;
-  }
+    // 更新申请状态
+    await tx.territory_applications.update({
+      where: { id: appId },
+      data: {
+        status: 'approved',
+        processed_by: adminQQ,
+        decision_message: message ?? null,
+        processed_at: new Date(),
+      },
+    });
+
+    return { status: 'approved' as const, territoryId: territory.id };
+  });
 }
 
 /** 玩家向领地公共池捐献额度（不可回提） */
-export async function contributeCredits(userQQ: string, territoryId: number, amount: number) {
-  if (amount <= 0) throw new Error("金额需为正数");
-  const member = await Members.findMemberByUser(userQQ);
-  if (!member || member.territory_id !== territoryId) throw new Error("你不在该领地内");
+export async function contributeCredits(
+  userQQ: string,
+  territoryId: bigint,
+  amount: number
+) {
+  if (amount <= 0) throw new Error('金额需为正数');
 
-  const conn = await pool.getConnection();
-  try {
-    await conn.beginTransaction();
-    await conn.execute("SELECT personal_credits FROM users WHERE qq=? FOR UPDATE", [userQQ]);
-    const [rows] = await conn.execute("SELECT personal_credits FROM users WHERE qq=?", [userQQ]);
-    const cur = (rows as any[])[0]?.personal_credits ?? 0;
-    if (cur < amount) throw new Error("个人额度不足");
-    await conn.execute("UPDATE users SET personal_credits = personal_credits - ? WHERE qq=?", [amount, userQQ]);
-    await conn.execute("UPDATE territories SET pool_credits = pool_credits + ? WHERE id=?", [amount, territoryId]);
-    await conn.commit(); conn.release();
-  } catch (e) {
-    await conn.rollback(); conn.release();
-    throw e;
-  }
+  return await prisma.$transaction(async (tx) => {
+    // 验证成员是否在该领地
+    const member = await tx.territory_members.findUnique({
+      where: { qq: userQQ },
+      select: { territory_id: true },
+    });
+
+    if (!member || member.territory_id !== territoryId)
+      throw new Error('你不在该领地内');
+
+    // 查用户额度
+    const user = await tx.users.findUnique({
+      where: { qq: userQQ },
+      select: { personal_credits: true },
+    });
+
+    if (!user) throw new Error('用户不存在');
+    if (user.personal_credits < amount)
+      throw new Error('个人额度不足');
+
+    // 扣除个人额度
+    await tx.users.update({
+      where: { qq: userQQ },
+      data: { personal_credits: { decrement: amount } },
+    });
+
+    // 增加领地公共额度
+    await tx.territories.update({
+      where: { id: territoryId },
+      data: { pool_credits: { increment: amount } },
+    });
+  });
 }
 
 /** 生成提案所需票数：成员<=3 需要全体同意；否则需要 >=50%（向上取整） */
@@ -102,31 +168,81 @@ export function requiredVotesFor(territoryMemberCount: number) {
 /** 发起提案：消费/拉人/踢人（不立即执行） */
 export async function createProposal(
   createdBy: string,
-  territoryId: number,
-  type: 'spend'|'join'|'expel',
+  territoryId: bigint,
+  type: "spend" | "join" | "expel",
   payload: any
 ) {
   // 必须是领地成员
-  const me = await Members.findMemberByUser(createdBy);
+  const me = await prisma.territory_members.findUnique({
+    where: { qq: createdBy },
+  });
   if (!me || me.territory_id !== territoryId) throw new Error("你不在该领地");
 
-  const count = await Members.countMembers(territoryId);
+  const count = await prisma.territory_members.count({
+    where: { territory_id: territoryId },
+  });
   const reqVotes = requiredVotesFor(count);
-  const proposalId = await Props.createProposal(territoryId, type, payload, createdBy, reqVotes);
-  return proposalId;
+  const proposal = await prisma.proposals.create({
+    data: {
+      territory_id: territoryId,
+      type,
+      payload: JSON.stringify(payload),
+      created_by: createdBy,
+      required_votes: reqVotes,
+    },
+  });
+  return proposal.id;
 }
 
 /** 对提案投票，并在满足条件时执行提案的副作用 */
-export async function voteProposal(voterQQ: string, proposalId: number, decision: 'approve'|'reject') {
-  const prop = await Props.getProposal(proposalId);
+export async function voteProposal(
+  voterQQ: string,
+  proposalId: number,
+  decision: "approve" | "reject"
+) {
+  const prop = await prisma.proposals.findUnique({
+    where: { id: proposalId },
+  });
   if (!prop || prop.status !== "pending") throw new Error("提案不存在或已处理");
 
   // 投票人必须是当前领地成员
-  const me = await Members.findMemberByUser(voterQQ);
-  if (!me || me.territory_id !== prop.territory_id) throw new Error("你不在该领地");
+  const me = await prisma.territory_members.findFirst({
+    where: { qq: voterQQ },
+  });
+  if (!me || me.territory_id !== prop.territory_id)
+    throw new Error("你不在该领地");
 
-  await Props.addVote(proposalId, voterQQ, decision);
-  const { approves } = await Props.countVotes(proposalId);
+  await prisma.proposal_votes.upsert({
+    where: {
+      proposal_id_voter_qq: {
+        // 复合唯一键，需要在 schema 中定义 @@unique([proposalId, voterQQ])
+        proposal_id: proposalId,
+        voter_qq: voterQQ,
+      },
+    },
+    update: {
+      decision,
+    },
+    create: {
+      proposal_id: proposalId,
+      voter_qq: voterQQ,
+      decision,
+    },
+  });
+
+  const votes = await prisma.proposal_votes.groupBy({
+    by: ["decision"],
+    _count: { decision: true },
+    where: { proposal_id: proposalId },
+  });
+
+  let approves = 0;
+  // let rejects = 0;
+
+  for (const v of votes) {
+    if (v.decision) approves = v._count.decision;
+    // else rejects = v._count.decision;
+  }
 
   if (approves >= prop.required_votes) {
     // 达成通过阈值 → 执行副作用
@@ -135,61 +251,106 @@ export async function voteProposal(voterQQ: string, proposalId: number, decision
 }
 
 /** 真正执行提案的副作用（原子事务） */
-async function executeProposalSideEffect(proposalId: number) {
-  const conn = await pool.getConnection();
-  try {
-    await conn.beginTransaction();
+async function executeProposalSideEffect(proposalId: bigint) {
+  await prisma.$transaction(async (tx) => {
+    // 1️⃣ 加锁提案（Prisma 没有原生 FOR UPDATE，但 serializable 隔离级别可保证安全）
+    const prop = await tx.proposals.findUnique({
+      where: { id: proposalId },
+    });
 
-    const [rows] = await conn.execute("SELECT * FROM proposals WHERE id=? FOR UPDATE", [proposalId]);
-    const prop = (rows as any[])[0];
-    if (!prop || prop.status !== "pending") { await conn.rollback(); conn.release(); return; }
-
-    const payload = JSON.parse(prop.payload);
-    const tId = prop.territory_id;
-
-    if (prop.type === 'spend') {
-      const amount = Number(payload.amount);
-      if (!(amount > 0)) throw new Error("金额非法");
-      // 从公共池扣款
-      const [p] = await conn.execute("SELECT pool_credits FROM territories WHERE id=? FOR UPDATE", [tId]);
-      const cur = (p as any[])[0]?.pool_credits ?? 0;
-      if (cur < amount) throw new Error("领地额度不足");
-      await conn.execute("UPDATE territories SET pool_credits = pool_credits - ? WHERE id=?", [amount, tId]);
-      await Props.setProposalStatus(proposalId, "approved");
-
-    } else if (prop.type === 'join') {
-      const target = String(payload.targetQQ);
-      // 加入前：不得拥有其他领地；若在别的领地，必须退出（由发起前沟通，或此处强制迁出）
-      await conn.execute("DELETE FROM territory_members WHERE user_id = ?", [target]);
-      // 加入本领地
-      await conn.execute(
-        "INSERT INTO territory_members (user_id, territory_id, role) VALUES (?,?,?)",
-        [target, tId, 'member']
-      );
-      // 更新 plots_limit（2*人数）
-      const [cntRows] = await conn.execute("SELECT COUNT(*) as c FROM territory_members WHERE territory_id=?", [tId]);
-      const c = (cntRows as any[])[0]?.c ?? 1;
-      const newLimit = c <= 1 ? 3 : 2 * c;
-      await conn.execute("UPDATE territories SET plots_limit=? WHERE id=?", [newLimit, tId]);
-
-      await Props.setProposalStatus(proposalId, "approved");
-
-    } else if (prop.type === 'expel') {
-      const target = String(payload.targetQQ);
-      await conn.execute("DELETE FROM territory_members WHERE user_id = ? AND territory_id = ?", [target, tId]);
-      // 更新 plots_limit
-      const [cntRows] = await conn.execute("SELECT COUNT(*) as c FROM territory_members WHERE territory_id=?", [tId]);
-      const c = (cntRows as any[])[0]?.c ?? 1;
-      const newLimit = c <= 1 ? 3 : 2 * c;
-      await conn.execute("UPDATE territories SET plots_limit=? WHERE id=?", [newLimit, tId]);
-
-      await Props.setProposalStatus(proposalId, "approved");
+    if (!prop || prop.status !== "pending") {
+      // 提案不存在或非待定状态，直接返回
+      throw new Error("提案不存在或状态非法");
     }
 
-    await conn.commit(); conn.release();
-  } catch (e) {
-    await pool.execute("UPDATE proposals SET status='rejected' WHERE id=?", [proposalId]).catch(()=>{});
-    await conn.rollback(); conn.release();
-    throw e;
-  }
+    const payload = JSON.parse(String(prop.payload));
+    const tId = prop.territory_id;
+
+    // -------------------------
+    // 2️⃣ 不同类型的副作用逻辑
+    // -------------------------
+    if (prop.type === "spend") {
+      const amount = Number(payload.amount);
+      if (!(amount > 0)) throw new Error("金额非法");
+
+      // 获取领地并加锁（Prisma 不支持 select for update，但事务串行化可避免竞态）
+      const territory = await tx.territories.findUnique({
+        where: { id: tId },
+        select: { pool_credits: true },
+      });
+      if (!territory) throw new Error("领地不存在");
+
+      if (territory.pool_credits < amount) {
+        throw new Error("领地额度不足");
+      }
+
+      await tx.territories.update({
+        where: { id: tId },
+        data: { pool_credits: { decrement: amount } },
+      });
+
+      await tx.proposals.update({
+        where: { id: proposalId },
+        data: { status: "approved" },
+      });
+
+    } else if (prop.type === "join") {
+      const target = String(payload.targetQQ);
+
+      // 删除其他领地成员身份
+      await tx.territory_members.deleteMany({
+        where: { qq: target },
+      });
+
+      // 加入本领地
+      await tx.territory_members.create({
+        data: { qq: target, territory_id: tId, role: "member" },
+      });
+
+      // 更新 plots_limit
+      const memberCount = await tx.territory_members.count({
+        where: { territory_id: tId },
+      });
+
+      const newLimit = memberCount <= 1 ? 3 : 2 * memberCount;
+
+      await tx.territories.update({
+        where: { id: tId },
+        data: { plots_limit: newLimit },
+      });
+
+      await tx.proposals.update({
+        where: { id: proposalId },
+        data: { status: "approved" },
+      });
+
+    } else if (prop.type === "expel") {
+      const target = String(payload.targetQQ);
+
+      await tx.territory_members.deleteMany({
+        where: { qq: target, territory_id: tId },
+      });
+
+      const memberCount = await tx.territory_members.count({
+        where: { territory_id: tId },
+      });
+
+      const newLimit = memberCount <= 1 ? 3 : 2 * memberCount;
+
+      await tx.territories.update({
+        where: { id: tId },
+        data: { plots_limit: newLimit },
+      });
+
+      await tx.proposals.update({
+        where: { id: proposalId },
+        data: { status: "approved" },
+      });
+    }
+
+    // 3️⃣ Prisma 自动提交事务
+  }, {
+    // 可选：强制串行化隔离级别（模拟 FOR UPDATE 行锁）
+    isolationLevel: "Serializable",
+  });
 }

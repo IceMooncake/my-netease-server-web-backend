@@ -1,10 +1,10 @@
 // index.ts
 import express from 'express';
-import authRoutes from './routes/index.ts';
+import authRoutes from './routes/index.routes.ts';
 
 // Importing jobs and listeners
-import './jobs/index.ts';
-import './listeners/index.ts';
+import './jobs/index.job.ts';
+import './listeners/index.listener.ts';
 
 // Initialize the Express application
 const app = express();

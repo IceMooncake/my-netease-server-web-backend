@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model group_members {
+  qq         String    @id @db.VarChar(255)
+  status     Int       @db.TinyInt
+  joined_at  DateTime? @default(now()) @db.DateTime(0)
+  updated_at DateTime? @default(now()) @db.DateTime(0)
+}
+
+model proposal_votes {
+  id          BigInt                  @id @default(autoincrement())
+  proposal_id BigInt
+  voter_qq    String                  @db.VarChar(255)
+  decision    proposal_votes_decision
+  created_at  DateTime?               @default(now()) @db.Timestamp(0)
+  proposals   proposals               @relation(fields: [proposal_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "proposal_votes_ibfk_1")
+
+  @@unique([proposal_id, voter_qq], map: "uq_vote")
+}
+
+model proposals {
+  id             BigInt           @id @default(autoincrement())
+  territory_id   BigInt
+  type           proposals_type
+  payload        Json
+  created_by     String           @db.VarChar(255)
+  status         proposals_status @default(pending)
+  required_votes Int
+  created_at     DateTime?        @default(now()) @db.Timestamp(0)
+  proposal_votes proposal_votes[]
+  territories    territories      @relation(fields: [territory_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "proposals_ibfk_1")
+
+  @@index([territory_id], map: "territory_id")
+}
+
+model territories {
+  id                BigInt              @id @default(autoincrement())
+  name              String              @db.VarChar(100)
+  owner_id          String              @unique(map: "owner_id") @db.VarChar(255)
+  created_at        DateTime?           @default(now()) @db.Timestamp(0)
+  type              territories_type    @default(overworld)
+  pool_credits      Int                 @default(0)
+  plots_limit       Int                 @default(3)
+  proposals         proposals[]
+  users             users               @relation(fields: [owner_id], references: [qq], onDelete: Cascade, onUpdate: NoAction, map: "territories_ibfk_1")
+  territory_members territory_members[]
+}
+
+model territory_applications {
+  id               BigInt                        @id @default(autoincrement())
+  applicant_qq     String                        @db.VarChar(255)
+  name             String                        @db.VarChar(100)
+  type             territory_applications_type
+  cost             Int                           @default(0)
+  status           territory_applications_status @default(pending)
+  decision_message String?                       @db.VarChar(255)
+  processed_by     String?                       @db.VarChar(255)
+  created_at       DateTime?                     @default(now()) @db.Timestamp(0)
+  processed_at     DateTime?                     @db.Timestamp(0)
+
+  @@index([applicant_qq], map: "applicant_qq")
+}
+
+model territory_members {
+  id           BigInt                  @id @default(autoincrement())
+  qq           String                  @unique(map: "user_id") @db.VarChar(255)
+  territory_id BigInt
+  role         territory_members_role? @default(member)
+  joined_at    DateTime?               @default(now()) @db.Timestamp(0)
+  users        users                   @relation(fields: [qq], references: [qq], onDelete: Cascade, onUpdate: NoAction, map: "territory_members_ibfk_1")
+  territories  territories             @relation(fields: [territory_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "territory_members_ibfk_2")
+
+  @@index([territory_id], map: "territory_id")
+}
+
+model users {
+  qq                String             @id @db.VarChar(255)
+  password          String?            @db.VarChar(255)
+  create_at         DateTime?          @default(now()) @db.DateTime(0)
+  nick_name         String?            @db.VarChar(255)
+  personal_credits  Int                @default(0)
+  is_admin          Int                @default(0) @db.TinyInt
+  territories       territories?
+  territory_members territory_members?
+}
+
+model verification_codes {
+  qq         String    @id @db.VarChar(255)
+  code       String    @db.VarChar(6)
+  expires_at DateTime  @db.DateTime(0)
+  verified   Boolean?  @default(false)
+  created_at DateTime? @default(now()) @db.DateTime(0)
+  password   String?   @db.VarChar(255)
+}
+
+enum proposals_type {
+  spend
+  join
+  expel
+}
+
+enum territory_applications_type {
+  overworld
+  nether
+  end
+}
+
+enum territory_members_role {
+  owner
+  member
+}
+
+enum proposal_votes_decision {
+  approve
+  reject
+}
+
+enum territories_type {
+  overworld
+  nether
+  end
+}
+
+enum territory_applications_status {
+  pending
+  approved
+  rejected
+}
+
+enum proposals_status {
+  pending
+  approved
+  rejected
+}

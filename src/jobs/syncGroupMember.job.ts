@@ -1,4 +1,4 @@
-import { napcatService, groupMemberService } from '../services/index.ts';
+import { napcatService, groupMemberService } from '../services/index.service.ts';
 
 const groupId = Number(process.env.NAPCAT_GROUPID)
 const { napcat } = napcatService;
