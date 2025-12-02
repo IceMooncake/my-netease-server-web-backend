@@ -1,1 +1,1 @@
-import './napcat/napcatService.js';
+import './napcat/napcatService.ts';

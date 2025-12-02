@@ -1,31 +1,27 @@
-// controllers/authController.js
-import * as AuthService from '../services/authService.js';
+// controllers/authController.ts
+import * as AuthService from '../services/authService.ts';
+import { Request, Response } from 'express';
+import { handleAsync } from '../utils/handleAsync.ts';
 
-export async function handleRegister(req, res) {
+export async function handleRegister(req: Request, res: Response) {
   const { username, password } = req.body;
-  try {
-    const userId = await AuthService.register(username, password);
-  } catch (err) {
-    res.status(400).json({ msg: err.message });
-  }
+  handleAsync(res, async () => {
+    return await AuthService.register(username, password);
+  })
 }
 
-export async function handleConfirmRegister(req, res) {
+export async function handleConfirmRegister(req: Request, res: Response) {
   const { username } = req.body;
-  try {
+  handleAsync(res, async () => {
     const userId = await AuthService.confirmRegister(username);
-    res.json({ msg: '注册成功', userId });
-  } catch (err) {
-    res.status(400).json({ msg: err.message });
-  }
+    return { msg: '注册成功', userId };
+  })
 }
 
-export async function handleLogin(req, res) {
+export async function handleLogin(req: Request, res: Response) {
   const { username, password } = req.body;
-  try {
+  handleAsync(res, async () => {
     const user = await AuthService.login(username, password);
-    res.json({ msg: '登录成功', user: user.username });
-  } catch (err) {
-    res.status(401).json({ msg: err.message });
-  }
+    return { msg: '登录成功', user: user.username };
+  }, 401); // 登录失败返回 401 Unauthorized
 }

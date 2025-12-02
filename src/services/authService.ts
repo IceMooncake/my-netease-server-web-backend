@@ -1,11 +1,12 @@
-// services/authService.js
-import { db } from '../config/mysql.js';
-import { findUserByUsername, createUser } from '../models/userModel.js';
-import { hashPassword, comparePassword } from '../utils/hash.js';
-import { generateCodeForQQ } from './verificationService.js';
-import { getMember } from '../models/groupModel.js';
+// services/authService.ts
+import { db } from '../config/mysql.ts';
+import { findUserByUsername, createUser } from '../models/userModel.ts';
+import { hashPassword, comparePassword } from '../utils/hash.ts';
+import { generateCodeForQQ } from './verificationService.ts';
+import { getMember } from '../models/groupModel.ts';
+import { RowDataPacket } from 'mysql2';
 
-export const register = async (username, password) => {
+export const register = async (username: number, password: string) => {
 
   // 检查用户是否在指定的群组中
   const isInGroup = await getMember(username);
@@ -23,8 +24,13 @@ export const register = async (username, password) => {
   throw new Error(`请在群中发送验证码：${code}，5分钟内有效`);
 };
 
-export async function confirmRegister(username) {
-    const [rows] = await db.execute(
+interface VerificationRow extends RowDataPacket {
+  verified: boolean;
+  password: string;
+}
+
+export async function confirmRegister(username: string) {
+    const [rows] = await db.execute<VerificationRow[]>(
       `SELECT verified, password FROM verification_codes WHERE qq = ?`,
       [username]
     );
@@ -37,7 +43,7 @@ export async function confirmRegister(username) {
     return username; // 返回新注册的用户名
 }
 
-export async function login(username, password) {
+export async function login(username: number, password: string) {
   const user = await findUserByUsername(username);
   if (!user) throw new Error('用户名或密码错误');
 

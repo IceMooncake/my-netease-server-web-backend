@@ -9,6 +9,6 @@ const napcatConfig = {
         attempts: 10,
         delay: 5000,
     }
-}
+} as const
 
 export { napcatConfig }

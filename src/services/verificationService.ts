@@ -1,7 +1,13 @@
-import { db } from '../config/mysql.js';
+import { RowDataPacket } from 'mysql2';
+import { db } from '../config/mysql.ts';
 
-export async function generateCodeForQQ(qq, password) {
-    const [rows] = await db.execute(
+interface VerificationRow extends RowDataPacket {
+  code: string;
+  expires_at: Date; // 如果是 DATETIME
+}
+
+export async function generateCodeForQQ(qq: number, password: string) {
+    const [rows] = await db.execute<VerificationRow[]>(
         `SELECT code, expires_at FROM verification_codes WHERE qq = ? AND verified = FALSE`,
         [qq]
     );
