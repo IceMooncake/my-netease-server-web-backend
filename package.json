@@ -5,8 +5,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "prisma generate && tsc --noEmit && node --loader ts-node/esm ./scripts/index.ts",
-    "start": "prisma generate && tsc --noEmit && nodemon",
+    "start": "prisma db pull && prisma generate && tsc --noEmit && node --loader ts-node/esm ./scripts/index.ts && nodemon",
+    "dev": "prisma db pull && prisma generate && tsc --noEmit && nodemon",
     "format": "prettier --write ."
   },
   "keywords": [],

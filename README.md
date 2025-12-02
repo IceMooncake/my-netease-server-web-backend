@@ -1,5 +1,4 @@
 - npm i
 - 修改配置
 - 导入数据库
-- npx prisma db pull
-- npx prisma generate
+- npm run start

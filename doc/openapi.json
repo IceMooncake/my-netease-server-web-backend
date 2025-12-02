@@ -155,7 +155,7 @@
               "type": "string",
               "enum": ["pending", "approved", "rejected"]
             },
-            "required": true,
+            "required": false,
             "name": "status",
             "in": "query"
           }
@@ -178,7 +178,7 @@
                         "enum": ["pending", "approved", "rejected"]
                       }
                     },
-                    "required": ["id", "status"]
+                    "required": ["id"]
                   }
                 }
               }
