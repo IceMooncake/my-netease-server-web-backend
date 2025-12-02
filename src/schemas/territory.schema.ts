@@ -16,28 +16,38 @@ export const ApplyBodySchema = z.object({
   cost: z.number().optional().default(0),
 })
 
+// apply 返回值
+export const ApplyResponseSchema = z.object({
+  id: z.string(),
+})
+
 // contribute 请求体
-export const ContributeBodySchema = z.object({
+export const ContributeBody = z.object({
   amount: z.number().min(0),
 })
 
 // proposeSpend 请求体
-export const ProposeSpendBodySchema = z.object({
+export const ProposeSpendBody = z.object({
   amount: z.number().min(0),
 })
 
 // proposeJoin / proposeExpel 请求体
-export const ProposeJoinExpelBodySchema = z.object({
+export const ProposeJoinExpelBody = z.object({
   targetQQ: z.string().min(3),
 })
 
 // vote 请求体
-export const VoteBodySchema = z.object({
+export const VoteBody = z.object({
   decision: DecisionEnum,
 })
 
+// vote参数
+export const VoteParams = z.object({
+  proposalId: z.preprocess(v => Number(v), z.number()),
+})
+
 // 路径参数 schema
-export const TerritoryIdParamsSchema = z.object({
+export const TerritoryIdParams = z.object({
   id: z.preprocess(v => {
     if (typeof v === 'string' || typeof v === 'number') {
       return BigInt(v)
@@ -46,6 +56,7 @@ export const TerritoryIdParamsSchema = z.object({
   }, z.bigint()),
 })
 
-export const ProposalIdParamsSchema = z.object({
-  proposalId: z.preprocess(v => Number(v), z.number()),
+// propose 系列返回 proposalId
+export const ProposalIdResponseSchema = z.object({
+  pid: z.string(),
 })
