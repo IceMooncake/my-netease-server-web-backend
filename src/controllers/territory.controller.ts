@@ -18,7 +18,7 @@ export function apply(req: Request, res: Response) {
   return handleAsync(
     res,
     async () => {
-      const user = (req as any).user
+      const user = req.user
       const body = ApplyBody.parse(req.body)
       return {
         id: await territoryService.applyCreateTerritory(user.qq, body.name, body.type, body.cost),
@@ -31,7 +31,7 @@ export function apply(req: Request, res: Response) {
 // contribute
 export function contribute(req: Request, res: Response) {
   return handleAsync(res, async () => {
-    const user = (req as any).user
+    const user = req.user
     const params = TerritoryIdParams.parse(req.params)
     const body = ContributeBody.parse(req.body)
     await territoryService.contributeCredits(user.qq, params.id, body.amount)
@@ -43,7 +43,7 @@ export function proposeSpend(req: Request, res: Response) {
   return handleAsync(
     res,
     async () => {
-      const user = (req as any).user
+      const user = req.user
       const params = TerritoryIdParams.parse(req.params)
       const body = ProposeSpendBody.parse(req.body)
       return {
@@ -63,7 +63,7 @@ export function proposeJoin(req: Request, res: Response) {
   return handleAsync(
     res,
     async () => {
-      const user = (req as any).user
+      const user = req.user
       const params = TerritoryIdParams.parse(req.params)
       const body = ProposeJoinExpelBody.parse(req.body)
       return {
@@ -83,7 +83,7 @@ export function proposeExpel(req: Request, res: Response) {
   return handleAsync(
     res,
     async () => {
-      const user = (req as any).user
+      const user = req.user
       const params = TerritoryIdParams.parse(req.params)
       const body = ProposeJoinExpelBody.parse(req.body)
       return {
@@ -101,7 +101,7 @@ export function proposeExpel(req: Request, res: Response) {
 // vote
 export function vote(req: Request, res: Response) {
   return handleAsync(res, async () => {
-    const user = (req as any).user
+    const user = req.user
     const params = VoteParams.parse(req.params)
     const body = VoteBody.parse(req.body)
     await territoryService.voteProposal(user.qq, params.proposalId, body.decision)

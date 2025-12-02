@@ -30,7 +30,7 @@ export function decideApplication(req: Request, res: Response) {
   return handleAsync(
     res,
     async () => {
-      const admin = (req as any).user
+      const admin = req.user
       const params = DecideApplicationParams.parse(req.params)
       const body = DecideApplicationBody.parse(req.body)
       const result = await territoryService.adminDecideCreate(
