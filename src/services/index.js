@@ -1,0 +1,1 @@
+import './napcat/napcatService.js';
