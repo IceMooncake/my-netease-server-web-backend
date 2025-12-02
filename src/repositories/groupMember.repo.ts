@@ -32,7 +32,7 @@ export async function updateGroupMemberStatus(qq: string, status: number): Promi
     if (!member) {
         throw new Error('群成员不存在');
     }
-    await pool.query('UPDATE group_members SET status = ?, update_at = ? WHERE qq = ?', [status, new Date(), qq])
+    await pool.query('UPDATE group_members SET status = ?, updated_at = ? WHERE qq = ?', [status, new Date(), qq])
 }
 
 export async function deleteLeaveMembers(): Promise<void> {
