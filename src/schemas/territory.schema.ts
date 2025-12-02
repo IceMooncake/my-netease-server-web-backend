@@ -1,6 +1,6 @@
-import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi'
+// import zod and inject openapi tool
 import { z } from 'zod'
-
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi'
 extendZodWithOpenApi(z)
 
 // 领地类型枚举

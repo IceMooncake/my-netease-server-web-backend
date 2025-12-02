@@ -1,7 +1,6 @@
-import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi'
-import prisma from '../database/prisma.ts'
+// import zod and inject openapi tool
 import { z } from 'zod'
-
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi'
 extendZodWithOpenApi(z)
 
 // listApplications 查询参数
