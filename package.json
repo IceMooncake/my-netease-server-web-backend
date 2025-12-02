@@ -5,9 +5,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "node src/index.js",
+    "dev": "nodemon",
     "build": "tsc",
-    "start": "node --loader ts-node/esm ./src/server.ts"
+    "start": "tsc --noEmit && node --loader ts-node/esm ./src/server.ts"
   },
   "keywords": [],
   "author": "",
