@@ -3,17 +3,17 @@
 ## 认证要求
 
 所有接口均需要 **JWT 认证**，并且用户必须具备 **管理员权限**。
- 中间件：`authenticateToken` + `requireAdmin`
+中间件：`authenticateToken` + `requireAdmin`
 
-------
+---
 
 ## 1. 获取领地申请列表
 
 **接口**
- `GET /admin/applications`
+`GET /admin/applications`
 
 **描述**
- 获取所有玩家提交的领地创建申请，可按状态筛选。
+获取所有玩家提交的领地创建申请，可按状态筛选。
 
 **请求参数（Query）**
 
@@ -45,15 +45,15 @@ Authorization: Bearer <token>
 }]
 ```
 
-------
+---
 
 ## 2. 审核领地申请
 
 **接口**
- `POST /admin/applications/:id/decide`
+`POST /admin/applications/:id/decide`
 
 **描述**
- 管理员对玩家的领地申请进行审批（通过或驳回）。
+管理员对玩家的领地申请进行审批（通过或驳回）。
 
 **请求参数**
 
@@ -87,7 +87,6 @@ Content-Type: application/json
 
 ```json
 {
-  "status": "approved",
+  "status": "approved"
 }
 ```
-

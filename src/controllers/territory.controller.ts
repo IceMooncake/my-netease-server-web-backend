@@ -1,16 +1,20 @@
-// src/controllers/territory.controller.ts
 import { Request, Response, NextFunction } from 'express'
 import { territoryService } from '../services/index.ts'
+import {
+  ApplyBodySchema,
+  ContributeBodySchema,
+  ProposeSpendBodySchema,
+  ProposeJoinExpelBodySchema,
+  VoteBodySchema,
+  TerritoryIdParamsSchema,
+  ProposalIdParamsSchema,
+} from '../schemas/territory.schema.ts'
 
 export async function apply(req: Request, res: Response, next: NextFunction) {
   try {
     const user = (req as any).user
-    const { name, type, cost } = req.body as {
-      name: string
-      type: 'overworld' | 'nether' | 'end'
-      cost: number
-    }
-    const id = await territoryService.applyCreateTerritory(user.qq, name, type, cost ?? 0)
+    const body = ApplyBodySchema.parse(req.body)
+    const id = await territoryService.applyCreateTerritory(user.qq, body.name, body.type, body.cost)
     res.json({ applicationId: id })
   } catch (e) {
     next(e)
@@ -20,9 +24,9 @@ export async function apply(req: Request, res: Response, next: NextFunction) {
 export async function contribute(req: Request, res: Response, next: NextFunction) {
   try {
     const user = (req as any).user
-    const territoryId = BigInt(req.params.id)
-    const { amount } = req.body as { amount: number }
-    await territoryService.contributeCredits(user.qq, territoryId, amount)
+    const params = TerritoryIdParamsSchema.parse(req.params)
+    const body = ContributeBodySchema.parse(req.body)
+    await territoryService.contributeCredits(user.qq, params.id, body.amount)
     res.json({ success: true })
   } catch (e) {
     next(e)
@@ -32,9 +36,11 @@ export async function contribute(req: Request, res: Response, next: NextFunction
 export async function proposeSpend(req: Request, res: Response, next: NextFunction) {
   try {
     const user = (req as any).user
-    const territoryId = BigInt(req.params.id)
-    const { amount } = req.body as { amount: number }
-    const pid = await territoryService.createProposal(user.qq, territoryId, 'spend', { amount })
+    const params = TerritoryIdParamsSchema.parse(req.params)
+    const body = ProposeSpendBodySchema.parse(req.body)
+    const pid = await territoryService.createProposal(user.qq, params.id, 'spend', {
+      amount: body.amount,
+    })
     res.json({ proposalId: pid })
   } catch (e) {
     next(e)
@@ -44,9 +50,11 @@ export async function proposeSpend(req: Request, res: Response, next: NextFuncti
 export async function proposeJoin(req: Request, res: Response, next: NextFunction) {
   try {
     const user = (req as any).user
-    const territoryId = BigInt(req.params.id)
-    const { targetQQ } = req.body as { targetQQ: string }
-    const pid = await territoryService.createProposal(user.qq, territoryId, 'join', { targetQQ })
+    const params = TerritoryIdParamsSchema.parse(req.params)
+    const body = ProposeJoinExpelBodySchema.parse(req.body)
+    const pid = await territoryService.createProposal(user.qq, params.id, 'join', {
+      targetQQ: body.targetQQ,
+    })
     res.json({ proposalId: pid })
   } catch (e) {
     next(e)
@@ -56,9 +64,11 @@ export async function proposeJoin(req: Request, res: Response, next: NextFunctio
 export async function proposeExpel(req: Request, res: Response, next: NextFunction) {
   try {
     const user = (req as any).user
-    const territoryId = BigInt(req.params.id)
-    const { targetQQ } = req.body as { targetQQ: string }
-    const pid = await territoryService.createProposal(user.qq, territoryId, 'expel', { targetQQ })
+    const params = TerritoryIdParamsSchema.parse(req.params)
+    const body = ProposeJoinExpelBodySchema.parse(req.body)
+    const pid = await territoryService.createProposal(user.qq, params.id, 'expel', {
+      targetQQ: body.targetQQ,
+    })
     res.json({ proposalId: pid })
   } catch (e) {
     next(e)
@@ -68,9 +78,9 @@ export async function proposeExpel(req: Request, res: Response, next: NextFuncti
 export async function vote(req: Request, res: Response, next: NextFunction) {
   try {
     const user = (req as any).user
-    const pid = Number(req.params.proposalId)
-    const { decision } = req.body as { decision: 'approve' | 'reject' }
-    await territoryService.voteProposal(user.qq, pid, decision)
+    const params = ProposalIdParamsSchema.parse(req.params)
+    const body = VoteBodySchema.parse(req.body)
+    await territoryService.voteProposal(user.qq, params.proposalId, body.decision)
     res.json({ success: true })
   } catch (e) {
     next(e)

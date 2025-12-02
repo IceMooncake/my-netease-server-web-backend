@@ -2,15 +2,15 @@
 
 所有接口前缀：`/auth`
 
-------
+---
 
 ## 1. 用户注册
 
 **接口**
- `POST /auth/register`
+`POST /auth/register`
 
 **描述**
- 注册新用户账号（需要 QQ 和密码）。
+注册新用户账号（需要 QQ 和密码）。
 
 **请求体（Body）**
 
@@ -40,17 +40,15 @@ Content-Type: application/json
 }
 ```
 
-
-
-------
+---
 
 ## 2. 确认注册
 
 **接口**
- `POST /auth/confirm-register`
+`POST /auth/confirm-register`
 
 **描述**
- 确认用户注册（前端点击"已发送验证码"调用），最终激活账号。
+确认用户注册（前端点击"已发送验证码"调用），最终激活账号。
 
 **请求体（Body）**
 
@@ -78,15 +76,15 @@ Content-Type: application/json
 }
 ```
 
-------
+---
 
 ## 3. 用户登录
 
 **接口**
- `POST /auth/login`
+`POST /auth/login`
 
 **描述**
- 用户使用 QQ 和密码登录，成功后返回 **JWT Token**。
+用户使用 QQ 和密码登录，成功后返回 **JWT Token**。
 
 **请求体（Body）**
 
@@ -125,10 +123,9 @@ Content-Type: application/json
 }
 ```
 
-------
+---
 
 ⚠️ 注意事项：
 
 - 登录成功后返回的 `token` 需要在调用其他受保护接口时放入 `Authorization: Bearer <token>` 头部。
 - `confirm-register` 在流程上可能只允许管理员调用（取决于你的业务逻辑）。
-

@@ -1,16 +1,25 @@
-// src/controllers/admin.controller.ts
 import { Request, Response, NextFunction } from 'express'
 import { territoryService } from '../services/index.ts'
 import prisma from '../database/prisma.ts'
+import {
+  ListApplicationsQuerySchema,
+  DecideApplicationBodySchema,
+  DecideApplicationParamsSchema,
+} from '../schemas/admin.schema.ts'
 
 export async function listApplications(req: Request, res: Response, next: NextFunction) {
   try {
-    const { status } = req.query as any
+    const query = ListApplicationsQuerySchema.parse(req.query)
     const list = await prisma.territory_applications.findMany({
-      where: status ? { status } : undefined,
+      where: query.status ? { status: query.status } : undefined,
       orderBy: { id: 'desc' },
     })
-    res.json(list)
+    res.json(
+      list.map(item => ({
+        ...item,
+        id: item.id.toString(),
+      }))
+    )
   } catch (e) {
     next(e)
   }
@@ -19,9 +28,17 @@ export async function listApplications(req: Request, res: Response, next: NextFu
 export async function decideApplication(req: Request, res: Response, next: NextFunction) {
   try {
     const admin = (req as any).user
-    const id = Number(req.params.id)
-    const { approve, message } = req.body as { approve: boolean; message?: string }
-    const result = await territoryService.adminDecideCreate(id, admin.qq, approve, message)
+
+    const params = DecideApplicationParamsSchema.parse(req.params)
+    const body = DecideApplicationBodySchema.parse(req.body)
+
+    const result = await territoryService.adminDecideCreate(
+      params.id,
+      admin.qq,
+      body.approve,
+      body.message
+    )
+
     res.json(result)
   } catch (e) {
     next(e)

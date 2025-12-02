@@ -1,25 +1,25 @@
 # 🏰 领地接口文档
 
 所有接口前缀：`/territories`
- 所有接口均需 **JWT 认证**，且用户必须登录（`authenticateToken + requireAuth`）。
+所有接口均需 **JWT 认证**，且用户必须登录（`authenticateToken + requireAuth`）。
 
-------
+---
 
 ## 1. 申请创建领地
 
 **接口**
- `POST /territories/apply`
+`POST /territories/apply`
 
 **描述**
- 玩家提交新领地创建申请，等待管理员审核。
+玩家提交新领地创建申请，等待管理员审核。
 
 **请求体（Body）**
 
-| 字段 | 类型                         | 必填 | 说明                         | 示例         |
-| ---- | ---------------------------- | ---- | ---------------------------- | ------------ |
-| name | string                       | 是   | 领地名称                     | `"天空之城"` |
-| type | `'overworld'|'nether'|'end'` | 是   | 圈地目标                     | 是           |
-| cost | number                       | 否   | 创建领地消耗的额度（默认 0） | `500`        |
+| 字段 | 类型         | 必填     | 说明                         | 示例         |
+| ---- | ------------ | -------- | ---------------------------- | ------------ | -------- | --- |
+| name | string       | 是       | 领地名称                     | `"天空之城"` |
+| type | `'overworld' | 'nether' | 'end'`                       | 是           | 圈地目标 | 是  |
+| cost | number       | 否       | 创建领地消耗的额度（默认 0） | `500`        |
 
 **请求示例**
 
@@ -43,15 +43,15 @@ Content-Type: application/json
 }
 ```
 
-------
+---
 
 ## 2. 向领地公共池捐献额度
 
 **接口**
- `POST /territories/:id/contribute`
+`POST /territories/:id/contribute`
 
 **描述**
- 向指定领地的公共池捐献额度。
+向指定领地的公共池捐献额度。
 
 **路径参数（Path）**
 
@@ -85,14 +85,14 @@ Content-Type: application/json
 }
 ```
 
-------
+---
 
 ## 3. 创建提案
 
 ### 3.1 消费额度提案
 
 **接口**
- `POST /territories/:id/proposals/spend`
+`POST /territories/:id/proposals/spend`
 
 **请求体（Body）**
 
@@ -111,7 +111,7 @@ Content-Type: application/json
 ### 3.2 加入成员提案
 
 **接口**
- `POST /territories/:id/proposals/join`
+`POST /territories/:id/proposals/join`
 
 **请求体（Body）**
 
@@ -130,7 +130,7 @@ Content-Type: application/json
 ### 3.3 驱逐成员提案
 
 **接口**
- `POST /territories/:id/proposals/expel`
+`POST /territories/:id/proposals/expel`
 
 **请求体（Body）**
 
@@ -146,15 +146,15 @@ Content-Type: application/json
 }
 ```
 
-------
+---
 
 ## 4. 对提案投票
 
 **接口**
- `POST /territories/proposals/:proposalId/vote`
+`POST /territories/proposals/:proposalId/vote`
 
 **描述**
- 玩家对提案进行投票（赞成或反对）。
+玩家对提案进行投票（赞成或反对）。
 
 **路径参数（Path）**
 
@@ -187,4 +187,3 @@ Content-Type: application/json
   "success": true
 }
 ```
-

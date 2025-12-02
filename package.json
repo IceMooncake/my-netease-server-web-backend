@@ -5,11 +5,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon",
-    "build": "tsc",
-    "start": "tsc --noEmit && node --loader ts-node/esm ./src/server.ts",
-    "format": "prettier --write .",
-    "check": "tsc --noEmit"
+    "build": "prisma generate && tsc --noEmit && node --loader ts-node/esm ./scripts/index.ts",
+    "start": "prisma generate && tsc --noEmit && nodemon",
+    "format": "prettier --write ."
   },
   "keywords": [],
   "author": "",
@@ -20,18 +18,22 @@
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.2.1",
+    "nodemon": "^3.1.11",
+    "openapi-typescript": "^7.10.1",
     "prettier": "^3.6.2",
     "prisma": "^6.17.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   },
   "dependencies": {
+    "@asteasolutions/zod-to-openapi": "^8.1.0",
     "@prisma/client": "^6.17.1",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.14.2",
-    "node-napcat-ts": "^0.4.13"
+    "node-napcat-ts": "^0.4.13",
+    "zod": "^4.1.12"
   }
 }
