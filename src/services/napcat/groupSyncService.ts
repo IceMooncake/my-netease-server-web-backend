@@ -1,7 +1,6 @@
 import { upsertGroupMember, replaceAllMembers } from '../../models/groupModel.ts';
 import { NCWebsocket } from 'node-napcat-ts';
-import { findVerificationCodeByQQ } from '../../repositories/verificationCodes.repo.ts';
-import { updateGroupMemberStatus } from '../../repositories/groupMember.repo.ts';
+import { verifyCode } from '../../repositories/verificationCodes.repo.ts';
 
 const GROUP_ID = 529260510;
 
@@ -31,12 +30,10 @@ export function watchGroupEvents(napcat: NCWebsocket) {
     if (ctx.group_id !== GROUP_ID) return;
     const code = ctx.raw_message.trim();
     const qq = ctx.user_id.toString();
-    const verificationRow = await findVerificationCodeByQQ(qq)
-    if (!verificationRow || !verificationRow.verified) return;
-    if (new Date(verificationRow.expires_at) < new Date()) return;
     // 验证成功，标记为已验证
-    await updateGroupMemberStatus(qq, 1);
-    console.log(`✅ QQ ${qq} 验证码 ${code} 验证通过`);
+    const access = await verifyCode(qq, code);
+    if (access) {
+      console.log(`✅ QQ ${qq} 验证码 ${code} 验证通过`);
+    }
   });
-
 }

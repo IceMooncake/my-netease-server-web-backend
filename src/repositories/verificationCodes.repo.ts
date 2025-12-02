@@ -16,10 +16,15 @@ export async function findVerificationCodeByQQ(qq: string): Promise<Verification
     return rows[0] || null;
 }
 
+export async function deleteVerificationCodeByQQ(qq: string): Promise<void> {
+    await pool.query('DELETE FROM verification_codes WHERE qq = ?', [qq]);
+}
+
 export async function createVerificationCode(qq: string, password: string): Promise<string> {
     const existingCode = await findVerificationCodeByQQ(qq);
     // 如果没有验证码或现有验证码未过期，则生成新的验证码
-    if (existingCode === null || (existingCode && new Date(existingCode.expires_at) > new Date())) {
+    if (existingCode === null || (existingCode && (new Date() > new Date(existingCode.expires_at)))) {
+        if (existingCode) await deleteVerificationCodeByQQ(qq)
         const code = Math.floor(100000 + Math.random() * 900000).toString();
         const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5分钟后过期
         const hashedPassword = await hashPassword(password);
@@ -38,7 +43,8 @@ export async function verifyCode(qq: string, code: string): Promise<boolean> {
         'SELECT * FROM verification_codes WHERE qq = ? AND code = ? AND verified = FALSE',
         [qq, code]
     );
-    if (rows.length === 0) throw new Error('验证码无效');
+    // if (rows.length === 0) throw new Error('验证码无效');
+    if (rows.length === 0) return false;
     const verificationCode = rows[0];
     if (new Date(verificationCode.expires_at) < new Date()) {
         throw new Error('验证码已过期');
