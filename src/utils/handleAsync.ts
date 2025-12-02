@@ -4,20 +4,20 @@ import z, { ZodType } from 'zod'
 export async function handleAsync<T>(
   res: Response,
   asyncFn: () => Promise<z.infer<T>>,
-  options?: { schema?: T; errorCode?: number }
+  options?: { response?: T; errorCode?: number }
 ) {
-  const { schema, errorCode = 400 } = options || {}
+  const { response, errorCode = 400 } = options || {}
 
   try {
     const result = await asyncFn()
-    const parsed = schema instanceof ZodType ? schema.parse(result) : result
-    return res.status(200).json(parsed)
+    const parsed = response instanceof ZodType ? response.parse(result) : result
+    res.status(200).json(parsed)
   } catch (err: unknown) {
     if (err instanceof Error) {
-      return res.status(errorCode).json({ msg: err.message })
+      res.status(errorCode).json({ msg: err.message })
     } else {
       console.error('Unexpected error:', err)
-      return res.status(500).json({ msg: '服务器内部错误' })
+      res.status(500).json({ msg: '服务器内部错误' })
     }
   }
 }

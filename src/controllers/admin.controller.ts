@@ -22,7 +22,7 @@ export function listApplications(req: Request, res: Response) {
       const result = list.map(item => ({ ...item, id: item.id.toString() }))
       return result
     },
-    { schema: ListApplicationsResponse }
+    { response: ListApplicationsResponse }
   )
 }
 
@@ -42,6 +42,6 @@ export function decideApplication(req: Request, res: Response) {
       // 使用 zod 验证返回值类型
       return result
     },
-    { schema: DecideApplicationResponse }
+    { response: DecideApplicationResponse }
   )
 }

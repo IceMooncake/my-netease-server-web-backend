@@ -10,14 +10,14 @@ export const TerritoryTypeEnum = z.enum(['overworld', 'nether', 'end'])
 export const DecisionEnum = z.enum(['approve', 'reject'])
 
 // apply 请求体
-export const ApplyBodySchema = z.object({
+export const ApplyBody = z.object({
   name: z.string().min(1),
   type: TerritoryTypeEnum,
   cost: z.number().optional().default(0),
 })
 
 // apply 返回值
-export const ApplyResponseSchema = z.object({
+export const ApplyResponse = z.object({
   id: z.string(),
 })
 
@@ -57,6 +57,6 @@ export const TerritoryIdParams = z.object({
 })
 
 // propose 系列返回 proposalId
-export const ProposalIdResponseSchema = z.object({
+export const ProposalIdResponse = z.object({
   pid: z.string(),
 })

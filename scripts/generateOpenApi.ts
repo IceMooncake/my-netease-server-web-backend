@@ -4,25 +4,25 @@ import fs from 'fs'
 import { OpenAPIRegistry, OpenApiGeneratorV3 } from '@asteasolutions/zod-to-openapi'
 
 import {
-  RegisterBodySchema,
-  LoginBodySchema,
-  ConfirmRegisterBodySchema,
+  RegisterBody,
+  LoginBody,
+  ConfirmRegisterBody,
 } from '../src/schemas/auth.schema.ts'
 
 import {
-  ListApplicationsQuerySchema,
-  DecideApplicationBodySchema,
-  DecideApplicationParamsSchema,
+  ListApplicationsQuery,
+  DecideApplicationBody,
+  DecideApplicationParams,
 } from '../src/schemas/admin.schema.ts'
 
 import {
-  ApplyBodySchema,
-  ContributeBodySchema,
-  ProposeSpendBodySchema,
-  ProposeJoinExpelBodySchema,
-  VoteBodySchema,
-  TerritoryIdParamsSchema,
-  ProposalIdParamsSchema,
+  ApplyBody,
+  ContributeBody,
+  ProposeSpendBody,
+  ProposeJoinExpelBody,
+  VoteBody,
+  VoteParams,
+  TerritoryIdParams,
 } from '../src/schemas/territory.schema.ts'
 
 export default function () {
@@ -41,7 +41,7 @@ export default function () {
     request: {
       body: {
         content: {
-          'application/json': { schema: RegisterBodySchema },
+          'application/json': { schema: RegisterBody },
         },
       },
     },
@@ -67,7 +67,7 @@ export default function () {
     request: {
       body: {
         content: {
-          'application/json': { schema: LoginBodySchema },
+          'application/json': { schema: LoginBody },
         },
       },
     },
@@ -94,7 +94,7 @@ export default function () {
     request: {
       body: {
         content: {
-          'application/json': { schema: ConfirmRegisterBodySchema },
+          'application/json': { schema: ConfirmRegisterBody },
         },
       },
     },
@@ -121,7 +121,7 @@ export default function () {
     path: '/admin/applications',
     summary: 'List territory applications',
     request: {
-      query: ListApplicationsQuerySchema,
+      query: ListApplicationsQuery,
     },
     responses: {
       200: {
@@ -131,7 +131,7 @@ export default function () {
             schema: z.array(
               z.object({
                 id: z.number(),
-                status: ListApplicationsQuerySchema.shape.status,
+                status: ListApplicationsQuery.shape.status,
               })
             ),
           },
@@ -145,10 +145,10 @@ export default function () {
     path: '/admin/applications/{id}/decide',
     summary: 'Approve or reject application',
     request: {
-      params: DecideApplicationParamsSchema,
+      params: DecideApplicationParams,
       body: {
         content: {
-          'application/json': { schema: DecideApplicationBodySchema },
+          'application/json': { schema: DecideApplicationBody },
         },
       },
     },
@@ -172,7 +172,7 @@ export default function () {
     request: {
       body: {
         content: {
-          'application/json': { schema: ApplyBodySchema },
+          'application/json': { schema: ApplyBody },
         },
       },
     },
@@ -193,8 +193,8 @@ export default function () {
     path: '/territories/{id}/contribute',
     summary: 'Contribute credits',
     request: {
-      params: TerritoryIdParamsSchema,
-      body: { content: { 'application/json': { schema: ContributeBodySchema } } },
+      params: TerritoryIdParams,
+      body: { content: { 'application/json': { schema: ContributeBody } } },
     },
     responses: {
       200: {
@@ -213,8 +213,8 @@ export default function () {
     path: '/territories/{id}/propose-spend',
     summary: 'Propose spending',
     request: {
-      params: TerritoryIdParamsSchema,
-      body: { content: { 'application/json': { schema: ProposeSpendBodySchema } } },
+      params: TerritoryIdParams,
+      body: { content: { 'application/json': { schema: ProposeSpendBody } } },
     },
     responses: {
       200: {
@@ -233,8 +233,8 @@ export default function () {
     path: '/territories/{id}/propose-join',
     summary: 'Propose joining',
     request: {
-      params: TerritoryIdParamsSchema,
-      body: { content: { 'application/json': { schema: ProposeJoinExpelBodySchema } } },
+      params: TerritoryIdParams,
+      body: { content: { 'application/json': { schema: ProposeJoinExpelBody } } },
     },
     responses: {
       200: {
@@ -253,8 +253,8 @@ export default function () {
     path: '/territories/{id}/propose-expel',
     summary: 'Propose expel',
     request: {
-      params: TerritoryIdParamsSchema,
-      body: { content: { 'application/json': { schema: ProposeJoinExpelBodySchema } } },
+      params: TerritoryIdParams,
+      body: { content: { 'application/json': { schema: ProposeJoinExpelBody } } },
     },
     responses: {
       200: {
@@ -273,10 +273,10 @@ export default function () {
     path: '/territories/proposals/{proposalId}/vote',
     summary: 'Vote on a proposal',
     request: {
-      params: ProposalIdParamsSchema,
+      params: VoteParams,
       body: {
         content: {
-          'application/json': { schema: VoteBodySchema },
+          'application/json': { schema: VoteBody },
         },
       },
     },

@@ -1,15 +1,15 @@
 import { Request, Response } from 'express'
 import { territoryService } from '../services/index.ts'
 import {
-  ApplyBodySchema,
+  ApplyBody,
   ContributeBody,
   ProposeSpendBody,
   ProposeJoinExpelBody,
   VoteBody,
   TerritoryIdParams,
   VoteParams,
-  ApplyResponseSchema,
-  ProposalIdResponseSchema,
+  ApplyResponse,
+  ProposalIdResponse,
 } from '../schemas/territory.schema.ts'
 import { handleAsync } from '../utils/handleAsync.ts'
 
@@ -19,12 +19,12 @@ export function apply(req: Request, res: Response) {
     res,
     async () => {
       const user = (req as any).user
-      const body = ApplyBodySchema.parse(req.body)
+      const body = ApplyBody.parse(req.body)
       return {
         id: await territoryService.applyCreateTerritory(user.qq, body.name, body.type, body.cost),
       }
     },
-    { schema: ApplyResponseSchema }
+    { response: ApplyResponse }
   )
 }
 
@@ -54,7 +54,7 @@ export function proposeSpend(req: Request, res: Response) {
         ).toString(),
       }
     },
-    { schema: ProposalIdResponseSchema }
+    { response: ProposalIdResponse }
   )
 }
 
@@ -74,7 +74,7 @@ export function proposeJoin(req: Request, res: Response) {
         ).toString(),
       }
     },
-    { schema: ProposalIdResponseSchema }
+    { response: ProposalIdResponse }
   )
 }
 
@@ -94,7 +94,7 @@ export function proposeExpel(req: Request, res: Response) {
         ).toString(),
       }
     },
-    { schema: ProposalIdResponseSchema }
+    { response: ProposalIdResponse }
   )
 }
 
