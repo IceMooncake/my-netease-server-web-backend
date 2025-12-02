@@ -1,0 +1,5 @@
+export { default as authService } from './auth/auth.service.ts'
+export { default as napcatService } from './napcat/napcat.service.ts'
+export { default as qqMemberService } from './qqMember/qqMember.service.ts'
+export { default as smsService } from './sms/sms.service.ts'
+export { default as territoryService } from './territory/index.ts'

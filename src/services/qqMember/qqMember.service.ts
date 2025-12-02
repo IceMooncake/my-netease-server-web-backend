@@ -1,4 +1,4 @@
-import prisma from '../database/prisma.ts'
+import prisma from '../../database/prisma.ts'
 
 // 批量更新群成员状态
 async function replaceAllMembers(qqArr: string[] = []) {

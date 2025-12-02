@@ -1,6 +1,6 @@
 // src/controllers/admin.controller.ts
 import { Request, Response, NextFunction } from 'express'
-import * as Svc from '../services/territory.service.ts'
+import { territoryService } from '../services/index.ts'
 import prisma from '../database/prisma.ts'
 
 export async function listApplications(req: Request, res: Response, next: NextFunction) {
@@ -21,7 +21,7 @@ export async function decideApplication(req: Request, res: Response, next: NextF
     const admin = (req as any).user
     const id = Number(req.params.id)
     const { approve, message } = req.body as { approve: boolean; message?: string }
-    const result = await Svc.adminDecideCreate(id, admin.qq, approve, message)
+    const result = await territoryService.adminDecideCreate(id, admin.qq, approve, message)
     res.json(result)
   } catch (e) {
     next(e)

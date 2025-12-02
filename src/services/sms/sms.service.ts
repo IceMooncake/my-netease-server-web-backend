@@ -1,5 +1,5 @@
-import prisma from '../database/prisma.ts'
-import { hashPassword } from '../utils/hash.ts'
+import prisma from '../../database/prisma.ts'
+import { hashPassword } from '../../utils/hash.ts'
 
 // 创建或更新验证码
 async function createVerificationCode(qq: string, password: string): Promise<string> {

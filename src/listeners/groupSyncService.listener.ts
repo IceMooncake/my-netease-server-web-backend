@@ -1,5 +1,5 @@
 import prisma from '../database/prisma.ts'
-import napcatService from '../services/napcat.service.ts'
+import { napcatService } from '../services/index.ts'
 
 const { napcat } = napcatService
 const groupId = Number(process.env.NAPCAT_GROUPID)

@@ -1,7 +1,7 @@
 // controllers/authController.ts
 import { Request, Response } from 'express'
 import { handleAsync } from '../utils/handleAsync.ts'
-import authService from '../services/auth.service.ts'
+import { authService } from '../services/index.ts'
 
 export async function handleRegister(req: Request, res: Response) {
   const { qq, password } = req.body
