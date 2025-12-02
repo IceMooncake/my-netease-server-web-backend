@@ -1,4 +1,4 @@
-import { pool } from '../config/mysql.ts'
+import { pool } from '../database/mysql.ts'
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
 interface GroupMember extends RowDataPacket {

@@ -1,5 +1,5 @@
 import { RowDataPacket } from "mysql2"
-import { pool } from "../config/mysql.ts";
+import { pool } from "../database/mysql.ts";
 import { hashPassword } from "../utils/hash.ts";
 
 interface VerificationCode extends RowDataPacket {

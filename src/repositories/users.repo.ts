@@ -1,6 +1,6 @@
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 import { comparePassword } from "../utils/hash.ts";
-import { pool } from "../config/mysql.ts";
+import { pool } from "../database/mysql.ts";
 
 export interface User extends RowDataPacket {
     qq: string

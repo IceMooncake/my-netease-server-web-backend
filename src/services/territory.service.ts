@@ -3,7 +3,7 @@ import * as Terr from "../repositories/territories.repo.ts";
 import * as Members from "../repositories/territoryMembers.repo.ts";
 import * as Apps from "../repositories/applications.repo.ts";
 import * as Props from "../repositories/proposals.repo.ts";
-import { pool } from "../config/mysql.ts";
+import { pool } from "../database/mysql.ts";
 
 /** 规则：单人领地 plots = 3；多人领地 plots = 2 * 人数 */
 export function computePlotsLimit(memberCount: number) {

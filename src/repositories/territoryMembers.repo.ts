@@ -1,5 +1,5 @@
 // src/repositories/territoryMembers.repo.ts
-import { pool } from "../config/mysql.ts";
+import { pool } from "../database/mysql.ts";
 
 export async function addMember(userId: string, territoryId: number, role: 'owner'|'member') {
   const [r] = await pool.execute(

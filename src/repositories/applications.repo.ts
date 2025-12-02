@@ -1,5 +1,5 @@
 // src/repositories/applications.repo.ts
-import { pool } from "../config/mysql.ts";
+import { pool } from "../database/mysql.ts";
 
 export type AppStatus = 'pending'|'approved'|'rejected';
 

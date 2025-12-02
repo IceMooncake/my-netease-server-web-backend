@@ -1,5 +1,5 @@
 // src/repositories/proposals.repo.ts
-import { pool } from "../config/mysql.ts";
+import { pool } from "../database/mysql.ts";
 
 export type ProposalType = 'spend'|'join'|'expel';
 export type ProposalStatus = 'pending'|'approved'|'rejected';

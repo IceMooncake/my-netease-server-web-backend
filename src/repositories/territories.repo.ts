@@ -1,5 +1,5 @@
 // src/repositories/territories.repo.ts
-import { pool } from "../config/mysql.ts";
+import { pool } from "../database/mysql.ts";
 
 export async function createTerritory(name: string, ownerId: string, type: 'overworld'|'nether'|'end', plotsLimit: number) {
   const [r] = await pool.execute(
