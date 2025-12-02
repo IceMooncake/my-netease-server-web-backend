@@ -1,24 +1,11 @@
-// {
-//   "compilerOptions": {
-//     "noEmit": true,
-//     "target": "ES2020",
-//     "module": "ESNext",
-//     "moduleResolution": "node",
-//     "esModuleInterop": true,
-//     "strict": true,
-//     "skipLibCheck": true,
-//     "forceConsistentCasingInFileNames": true,
-//     "allowImportingTsExtensions": true,
-//   }
-// }
 {
   "compilerOptions": {
     "noEmit": true,
     "target": "ES2022",
-    "module": "ESNext",            // 关键：生成 ESM 模块
-    "moduleResolution": "Node",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "strict": true,
-    "esModuleInterop": true,       // 有时导入 CommonJS 兼容
+    "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
     "sourceMap": true,
