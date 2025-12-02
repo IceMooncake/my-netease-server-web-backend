@@ -1,7 +1,7 @@
 // services/authService.ts
 import jwt from 'jsonwebtoken'
 import { comparePassword } from '../utils/hash.ts';
-import otpService from './otp.service.ts';
+import otpService from './sms.service.ts';
 import { createUser, findUserByQQ } from '../repositories/users.repo.ts';
 import { findGroupMemberByQQ } from '../repositories/groupMember.repo.ts';
 

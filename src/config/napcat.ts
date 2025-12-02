@@ -1,6 +1,9 @@
+import dotenv from 'dotenv'
+dotenv.config()
+
 const napcatConfig = {
-    baseUrl: "ws://127.0.0.1:3002",
-    accessToken: "",
+    baseUrl: String(process.env.NAPCAT_URL),
+    accessToken: String(process.env.NAPCAT_TOKEN),
     // 是否需要在触发 socket.error 时抛出错误, 默认关闭
     throwPromise: true,
     // ↓ 自动重连(可选)
@@ -11,6 +14,6 @@ const napcatConfig = {
     }
 } as const
 
-const GROUP_ID = 123456789; // 群号
+const GROUP_ID = Number(process.env.NAPCAT_GROUPID); // 群号
 
 export { napcatConfig, GROUP_ID }

@@ -1,7 +1,7 @@
 import { createGroupMember, findAllGroupMembers, updateGroupMemberStatus } from '../repositories/groupMember.repo.ts';
 
 // 批量更新群成员状态
-export async function replaceAllMembers(qqArr: string[] = []) {
+async function replaceAllMembers(qqArr: string[] = []) {
     // 获取数据库中已有的群成员（user_id 和 status）
     const rows = await findAllGroupMembers();
     const qqMap = new Map(rows.map(row => [row.qq, row.status]));
@@ -24,4 +24,8 @@ export async function replaceAllMembers(qqArr: string[] = []) {
         await updateGroupMemberStatus(qq, 0); // 更新为 left
       }
     }
+}
+
+export default {
+  replaceAllMembers
 }
