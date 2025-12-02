@@ -1,10 +1,9 @@
 // services/authService.ts
 import { findUserByUsername, createUser } from '../models/userModel.ts';
-import { hashPassword, comparePassword } from '../utils/hash.ts';
+import { comparePassword } from '../utils/hash.ts';
 import { generateCodeForQQ } from './verificationService.ts';
 import { getMember } from '../models/groupModel.ts';
-import { RowDataPacket } from 'mysql2';
-import { findVerificationCodeByQQ } from '../repositories/verificationCodes.repo.ts';
+import { deleteVerificationCodeByQQ, findVerificationCodeByQQ } from '../repositories/verificationCodes.repo.ts';
 
 export const register = async (qq: string, password: string) => {
 
@@ -17,17 +16,11 @@ export const register = async (qq: string, password: string) => {
   if (existingUser) throw new Error('用户已存在');
 
   // 生成或返回已有验证码
-  const hashed = await hashPassword(password);
-  const code = await generateCodeForQQ(qq, hashed); // username 即 QQ 号
+  const code = await generateCodeForQQ(qq, password); // username 即 QQ 号
 
   // 返回提示信息
   throw new Error(`请在群中发送验证码：${code}，5分钟内有效`);
 };
-
-interface VerificationRow extends RowDataPacket {
-  verified: boolean;
-  password: string;
-}
 
 export async function confirmRegister(qq: string) {
     const row = await findVerificationCodeByQQ(qq)
@@ -35,8 +28,8 @@ export async function confirmRegister(qq: string) {
     if (!row || !row.verified) {
       throw new Error('503');
     }
-
     await createUser(qq, row.password);
+    deleteVerificationCodeByQQ(qq); // 注册成功删除验证码记录
     return qq; // 返回新注册的用户名
 }
 
