@@ -27,7 +27,10 @@
                     "minLength": 6
                   }
                 },
-                "required": ["qq", "password"]
+                "required": [
+                  "qq",
+                  "password"
+                ]
               }
             }
           }
@@ -47,7 +50,10 @@
                       "type": "string"
                     }
                   },
-                  "required": ["success", "message"]
+                  "required": [
+                    "success",
+                    "message"
+                  ]
                 }
               }
             }
@@ -73,7 +79,10 @@
                     "minLength": 6
                   }
                 },
-                "required": ["qq", "password"]
+                "required": [
+                  "qq",
+                  "password"
+                ]
               }
             }
           }
@@ -96,7 +105,11 @@
                       "type": "string"
                     }
                   },
-                  "required": ["msg", "qq", "token"]
+                  "required": [
+                    "msg",
+                    "qq",
+                    "token"
+                  ]
                 }
               }
             }
@@ -118,7 +131,9 @@
                     "minLength": 3
                   }
                 },
-                "required": ["qq"]
+                "required": [
+                  "qq"
+                ]
               }
             }
           }
@@ -138,7 +153,10 @@
                       "type": "string"
                     }
                   },
-                  "required": ["msg", "qq"]
+                  "required": [
+                    "msg",
+                    "qq"
+                  ]
                 }
               }
             }
@@ -153,7 +171,11 @@
           {
             "schema": {
               "type": "string",
-              "enum": ["pending", "approved", "rejected"]
+              "enum": [
+                "pending",
+                "approved",
+                "rejected"
+              ]
             },
             "required": false,
             "name": "status",
@@ -175,10 +197,16 @@
                       },
                       "status": {
                         "type": "string",
-                        "enum": ["pending", "approved", "rejected"]
+                        "enum": [
+                          "pending",
+                          "approved",
+                          "rejected"
+                        ]
                       }
                     },
-                    "required": ["id"]
+                    "required": [
+                      "id"
+                    ]
                   }
                 }
               }
@@ -214,7 +242,9 @@
                     "type": "string"
                   }
                 },
-                "required": ["approve"]
+                "required": [
+                  "approve"
+                ]
               }
             }
           }
@@ -231,7 +261,9 @@
                       "type": "boolean"
                     }
                   },
-                  "required": ["success"]
+                  "required": [
+                    "success"
+                  ]
                 }
               }
             }
@@ -254,14 +286,21 @@
                   },
                   "type": {
                     "type": "string",
-                    "enum": ["overworld", "nether", "end"]
+                    "enum": [
+                      "overworld",
+                      "nether",
+                      "end"
+                    ]
                   },
                   "cost": {
                     "type": "number",
                     "default": 0
                   }
                 },
-                "required": ["name", "type"]
+                "required": [
+                  "name",
+                  "type"
+                ]
               }
             }
           }
@@ -278,7 +317,9 @@
                       "type": "number"
                     }
                   },
-                  "required": ["applicationId"]
+                  "required": [
+                    "applicationId"
+                  ]
                 }
               }
             }
@@ -311,7 +352,9 @@
                     "minimum": 0
                   }
                 },
-                "required": ["amount"]
+                "required": [
+                  "amount"
+                ]
               }
             }
           }
@@ -328,7 +371,9 @@
                       "type": "boolean"
                     }
                   },
-                  "required": ["success"]
+                  "required": [
+                    "success"
+                  ]
                 }
               }
             }
@@ -361,7 +406,9 @@
                     "minimum": 0
                   }
                 },
-                "required": ["amount"]
+                "required": [
+                  "amount"
+                ]
               }
             }
           }
@@ -378,7 +425,9 @@
                       "type": "number"
                     }
                   },
-                  "required": ["proposalId"]
+                  "required": [
+                    "proposalId"
+                  ]
                 }
               }
             }
@@ -411,7 +460,9 @@
                     "minLength": 3
                   }
                 },
-                "required": ["targetQQ"]
+                "required": [
+                  "targetQQ"
+                ]
               }
             }
           }
@@ -428,7 +479,9 @@
                       "type": "number"
                     }
                   },
-                  "required": ["proposalId"]
+                  "required": [
+                    "proposalId"
+                  ]
                 }
               }
             }
@@ -461,7 +514,9 @@
                     "minLength": 3
                   }
                 },
-                "required": ["targetQQ"]
+                "required": [
+                  "targetQQ"
+                ]
               }
             }
           }
@@ -478,7 +533,9 @@
                       "type": "number"
                     }
                   },
-                  "required": ["proposalId"]
+                  "required": [
+                    "proposalId"
+                  ]
                 }
               }
             }
@@ -508,10 +565,15 @@
                 "properties": {
                   "decision": {
                     "type": "string",
-                    "enum": ["approve", "reject"]
+                    "enum": [
+                      "approve",
+                      "reject"
+                    ]
                   }
                 },
-                "required": ["decision"]
+                "required": [
+                  "decision"
+                ]
               }
             }
           }
@@ -528,7 +590,9 @@
                       "type": "boolean"
                     }
                   },
-                  "required": ["success"]
+                  "required": [
+                    "success"
+                  ]
                 }
               }
             }
