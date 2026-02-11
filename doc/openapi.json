@@ -11,6 +11,9 @@
   "paths": {
     "/auth/register": {
       "post": {
+        "tags": [
+          "Authentication"
+        ],
         "summary": "Register a new user",
         "requestBody": {
           "content": {
@@ -63,6 +66,9 @@
     },
     "/auth/login": {
       "post": {
+        "tags": [
+          "Authentication"
+        ],
         "summary": "Login user",
         "requestBody": {
           "content": {
@@ -119,6 +125,9 @@
     },
     "/auth/confirm-register": {
       "post": {
+        "tags": [
+          "Authentication"
+        ],
         "summary": "Confirm registration",
         "requestBody": {
           "content": {
@@ -166,6 +175,9 @@
     },
     "/admin/applications": {
       "get": {
+        "tags": [
+          "Admin"
+        ],
         "summary": "List territory applications",
         "parameters": [
           {
@@ -217,6 +229,9 @@
     },
     "/admin/applications/{id}/decide": {
       "post": {
+        "tags": [
+          "Admin"
+        ],
         "summary": "Approve or reject application",
         "parameters": [
           {
@@ -273,6 +288,9 @@
     },
     "/territories/apply": {
       "post": {
+        "tags": [
+          "Territories"
+        ],
         "summary": "Apply for a territory",
         "requestBody": {
           "content": {
@@ -329,6 +347,9 @@
     },
     "/territories/{id}/contribute": {
       "post": {
+        "tags": [
+          "Territories"
+        ],
         "summary": "Contribute credits",
         "parameters": [
           {
@@ -383,6 +404,9 @@
     },
     "/territories/{id}/propose-spend": {
       "post": {
+        "tags": [
+          "Proposals"
+        ],
         "summary": "Propose spending",
         "parameters": [
           {
@@ -437,6 +461,9 @@
     },
     "/territories/{id}/propose-join": {
       "post": {
+        "tags": [
+          "Proposals"
+        ],
         "summary": "Propose joining",
         "parameters": [
           {
@@ -491,6 +518,9 @@
     },
     "/territories/{id}/propose-expel": {
       "post": {
+        "tags": [
+          "Proposals"
+        ],
         "summary": "Propose expel",
         "parameters": [
           {
@@ -545,6 +575,9 @@
     },
     "/territories/proposals/{proposalId}/vote": {
       "post": {
+        "tags": [
+          "Proposals"
+        ],
         "summary": "Vote on a proposal",
         "parameters": [
           {

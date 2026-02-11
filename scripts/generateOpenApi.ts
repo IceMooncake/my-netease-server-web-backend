@@ -37,6 +37,7 @@ export default function () {
   registry.registerPath({
     method: 'post',
     path: '/auth/register',
+    tags: ['Authentication'],
     summary: 'Register a new user',
     request: {
       body: {
@@ -63,6 +64,7 @@ export default function () {
   registry.registerPath({
     method: 'post',
     path: '/auth/login',
+    tags: ['Authentication'],
     summary: 'Login user',
     request: {
       body: {
@@ -90,6 +92,7 @@ export default function () {
   registry.registerPath({
     method: 'post',
     path: '/auth/confirm-register',
+    tags: ['Authentication'],
     summary: 'Confirm registration',
     request: {
       body: {
@@ -119,6 +122,7 @@ export default function () {
   registry.registerPath({
     method: 'get',
     path: '/admin/applications',
+    tags: ['Admin'],
     summary: 'List territory applications',
     request: {
       query: ListApplicationsQuery,
@@ -143,6 +147,7 @@ export default function () {
   registry.registerPath({
     method: 'post',
     path: '/admin/applications/{id}/decide',
+    tags: ['Admin'],
     summary: 'Approve or reject application',
     request: {
       params: DecideApplicationParams,
@@ -168,6 +173,7 @@ export default function () {
   registry.registerPath({
     method: 'post',
     path: '/territories/apply',
+    tags: ['Territories'],
     summary: 'Apply for a territory',
     request: {
       body: {
@@ -191,6 +197,7 @@ export default function () {
   registry.registerPath({
     method: 'post',
     path: '/territories/{id}/contribute',
+    tags: ['Territories'],
     summary: 'Contribute credits',
     request: {
       params: TerritoryIdParams,
@@ -211,6 +218,7 @@ export default function () {
   registry.registerPath({
     method: 'post',
     path: '/territories/{id}/propose-spend',
+    tags: ['Proposals'],
     summary: 'Propose spending',
     request: {
       params: TerritoryIdParams,
@@ -231,6 +239,7 @@ export default function () {
   registry.registerPath({
     method: 'post',
     path: '/territories/{id}/propose-join',
+    tags: ['Proposals'],
     summary: 'Propose joining',
     request: {
       params: TerritoryIdParams,
@@ -251,6 +260,7 @@ export default function () {
   registry.registerPath({
     method: 'post',
     path: '/territories/{id}/propose-expel',
+    tags: ['Proposals'],
     summary: 'Propose expel',
     request: {
       params: TerritoryIdParams,
@@ -271,6 +281,7 @@ export default function () {
   registry.registerPath({
     method: 'post',
     path: '/territories/proposals/{proposalId}/vote',
+    tags: ['Proposals'],
     summary: 'Vote on a proposal',
     request: {
       params: VoteParams,
