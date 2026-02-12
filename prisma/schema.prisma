@@ -120,7 +120,7 @@ model oauth_clients {
 }
 
 model oauth_access_tokens {
-  access_token String    @id @db.VarChar(100)
+  access_token String    @id @db.VarChar(500)
   client_id    String    @db.VarChar(80)
   user_qq      String    @db.VarChar(255)
   expires_at   DateTime? @db.Timestamp(0)
@@ -136,7 +136,7 @@ model oauth_access_tokens {
 
 model oauth_refresh_tokens {
   refresh_token String    @id @db.VarChar(100)
-  access_token  String    @db.VarChar(100)
+  access_token  String    @db.VarChar(500)
   client_id     String    @db.VarChar(80)
   user_qq       String    @db.VarChar(255)
   expires_at    DateTime? @db.Timestamp(0)

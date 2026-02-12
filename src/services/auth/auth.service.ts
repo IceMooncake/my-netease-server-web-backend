@@ -1,10 +1,32 @@
 import jwt from 'jsonwebtoken'
+import crypto from 'crypto'
 import { comparePassword } from '../../utils/hash.js'
 import otpService from '../sms/sms.service.js'
 import prisma from '../../database/prisma.js'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'default_secret'
-const JWT_EXPIRES_IN = '7d' // 7天有效
+
+const generateSecureToken = (length: number = 32): string => {
+  return crypto.randomBytes(length).toString('base64url')
+}
+
+const ensureOAuthClient = async () => {
+  const clientId = 'ice_town_web'
+  const existingClient = await prisma.oauth_clients.findUnique({
+    where: { client_id: clientId },
+  })
+  if (!existingClient) {
+    await prisma.oauth_clients.create({
+      data: {
+        client_id: clientId,
+        client_secret: 'default_secret', // In production, use a secure secret
+        redirect_uri: 'http://localhost:5173/callback', // Adjust as needed
+        grant_types: 'authorization_code refresh_token',
+        scope: 'read write',
+      },
+    })
+  }
+}
 
 const register = async (qq: string, password: string) => {
   // 检查用户是否在指定的群组中
@@ -42,6 +64,9 @@ async function login(qq: string, password: string) {
   const isMatch = await comparePassword(password, user.password) // ✅ 使用 bcrypt 比对密码
   if (!isMatch) throw new Error('用户名或密码错误')
 
+  // 确保 OAuth 客户端存在
+  await ensureOAuthClient()
+
   // 生成 access token (1小时有效)
   const accessToken = jwt.sign(
     {
@@ -54,7 +79,7 @@ async function login(qq: string, password: string) {
   )
 
   // 生成 refresh token (30天有效)
-  const refreshToken = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2)
+  const refreshToken = generateSecureToken()
 
   // 存储 tokens 到数据库
   await prisma.oauth_access_tokens.create({
@@ -107,7 +132,7 @@ async function authorize(
   }
 
   // Generate code
-  const code = Math.random().toString(36).substring(2, 15)
+  const code = generateSecureToken(16) // Shorter for authorization code
 
   // Store code
   await prisma.oauth_authorization_codes.create({
@@ -162,8 +187,7 @@ async function token(
   )
 
   // Generate refresh token
-  const refreshToken =
-    Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2)
+  const refreshToken = generateSecureToken()
 
   // Store tokens (Wait, verify user exists first?)
   // Assuming user exists because code exists
@@ -236,7 +260,7 @@ async function refreshToken(refreshToken: string) {
   })
 
   // 生成新的refresh token
-  const newRefreshToken = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2)
+  const newRefreshToken = generateSecureToken()
 
   // 存储新的tokens
   await prisma.oauth_access_tokens.create({
