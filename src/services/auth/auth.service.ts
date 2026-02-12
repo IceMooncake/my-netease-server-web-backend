@@ -41,15 +41,50 @@ async function login(qq: string, password: string) {
   if (!user) throw new Error('用户名或密码错误') // 用户不存在(不透明错误)
   const isMatch = await comparePassword(password, user.password) // ✅ 使用 bcrypt 比对密码
   if (!isMatch) throw new Error('用户名或密码错误')
-  const token = jwt.sign(
+
+  // 生成 access token (1小时有效)
+  const accessToken = jwt.sign(
     {
       qq: user.qq,
       isAdmin: user.is_admin,
-    }, // payload
+      type: 'access'
+    },
     JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
+    { expiresIn: '1h' }
   )
-  return token
+
+  // 生成 refresh token (30天有效)
+  const refreshToken = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2)
+
+  // 存储 tokens 到数据库
+  await prisma.oauth_access_tokens.create({
+    data: {
+      access_token: accessToken,
+      client_id: 'ice_town_web', // 默认客户端ID
+      user_qq: user.qq,
+      expires_at: new Date(Date.now() + 3600 * 1000), // 1小时
+      scope: 'read write'
+    },
+  })
+
+  await prisma.oauth_refresh_tokens.create({
+    data: {
+      refresh_token: refreshToken,
+      access_token: accessToken,
+      client_id: 'ice_town_web',
+      user_qq: user.qq,
+      expires_at: new Date(Date.now() + 30 * 24 * 3600 * 1000), // 30天
+      scope: 'read write'
+    },
+  })
+
+  return {
+    access_token: accessToken,
+    token_type: 'Bearer',
+    expires_in: 3600,
+    refresh_token: refreshToken,
+    scope: 'read write'
+  }
 }
 
 async function authorize(
@@ -167,10 +202,76 @@ async function token(
   }
 }
 
+async function refreshToken(refreshToken: string) {
+  // 查找refresh token
+  const refreshTokenRecord = await prisma.oauth_refresh_tokens.findUnique({
+    where: { refresh_token: refreshToken },
+    include: { user: true }
+  })
+
+  if (!refreshTokenRecord) {
+    throw new Error('Invalid refresh token')
+  }
+
+  if (refreshTokenRecord.expires_at && refreshTokenRecord.expires_at < new Date()) {
+    throw new Error('Refresh token expired')
+  }
+
+  const user = refreshTokenRecord.user
+
+  // 生成新的access token
+  const newAccessToken = jwt.sign(
+    {
+      qq: user.qq,
+      isAdmin: user.is_admin,
+      type: 'access'
+    },
+    JWT_SECRET,
+    { expiresIn: '1h' }
+  )
+
+  // 删除旧的access token
+  await prisma.oauth_access_tokens.delete({
+    where: { access_token: refreshTokenRecord.access_token }
+  })
+
+  // 生成新的refresh token
+  const newRefreshToken = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2)
+
+  // 存储新的tokens
+  await prisma.oauth_access_tokens.create({
+    data: {
+      access_token: newAccessToken,
+      client_id: refreshTokenRecord.client_id,
+      user_qq: user.qq,
+      expires_at: new Date(Date.now() + 3600 * 1000),
+      scope: refreshTokenRecord.scope
+    },
+  })
+
+  await prisma.oauth_refresh_tokens.update({
+    where: { refresh_token: refreshToken },
+    data: {
+      refresh_token: newRefreshToken,
+      access_token: newAccessToken,
+      expires_at: new Date(Date.now() + 30 * 24 * 3600 * 1000),
+    },
+  })
+
+  return {
+    access_token: newAccessToken,
+    token_type: 'Bearer',
+    expires_in: 3600,
+    refresh_token: newRefreshToken,
+    scope: refreshTokenRecord.scope
+  }
+}
+
 export default {
   register,
   confirmRegister,
   login,
   authorize,
   token,
+  refreshToken,
 }

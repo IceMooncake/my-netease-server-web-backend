@@ -25,7 +25,11 @@ export const LoginBody = z.object({
 export const LoginResponse = z.object({
   qq: z.string(),
   msg: z.string(),
-  token: z.string(),
+  access_token: z.string(),
+  token_type: z.string(),
+  expires_in: z.number(),
+  refresh_token: z.string(),
+  scope: z.string().optional(),
 })
 
 // 确认注册请求体
@@ -69,4 +73,13 @@ export const TokenResponse = z.object({
   token_type: z.string(),
   expires_in: z.number(),
   refresh_token: z.string(),
+  scope: z.string().nullable().optional(),
 })
+
+// Refresh Token Request
+export const RefreshTokenBody = z.object({
+  refresh_token: z.string(),
+})
+
+// Refresh Token Response (same as TokenResponse)
+export const RefreshTokenResponse = TokenResponse

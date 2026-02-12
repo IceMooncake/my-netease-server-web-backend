@@ -43,8 +43,15 @@ export async function handleLogin(req: Request, res: Response) {
     res,
     async () => {
       const { qq, password } = LoginBody.parse(req.body)
-      const token = await authService.login(qq, password)
-      return { msg: '登录成功', qq, token }
+      const tokenData = await authService.login(qq, password)
+      
+      // 设置响应头存储token到浏览器
+      res.setHeader('Set-Cookie', [
+        `access_token=${tokenData.access_token}; HttpOnly; Secure; SameSite=Strict; Max-Age=${tokenData.expires_in}`,
+        `refresh_token=${tokenData.refresh_token}; HttpOnly; Secure; SameSite=Strict; Max-Age=${30 * 24 * 3600}`
+      ])
+      
+      return { msg: '登录成功', qq, ...tokenData }
     },
     { response: LoginResponse, errorCode: 401 }
   )
@@ -80,6 +87,28 @@ export async function handleToken(req: Request, res: Response) {
     async () => {
       const { grant_type, code, redirect_uri, client_id, client_secret } = TokenBody.parse(req.body)
       return await authService.token(grant_type, code, redirect_uri, client_id, client_secret)
+    },
+    { response: TokenResponse }
+  )
+}
+
+export async function handleRefreshToken(req: Request, res: Response) {
+  handleAsync(
+    res,
+    async () => {
+      const { refresh_token } = req.body
+      if (!refresh_token) {
+        throw new Error('Refresh token required')
+      }
+      const tokenData = await authService.refreshToken(refresh_token)
+      
+      // 更新响应头中的cookies
+      res.setHeader('Set-Cookie', [
+        `access_token=${tokenData.access_token}; HttpOnly; Secure; SameSite=Strict; Max-Age=${tokenData.expires_in}`,
+        `refresh_token=${tokenData.refresh_token}; HttpOnly; Secure; SameSite=Strict; Max-Age=${30 * 24 * 3600}`
+      ])
+      
+      return tokenData
     },
     { response: TokenResponse }
   )

@@ -6,6 +6,7 @@ import {
   handleConfirmRegister,
   handleAuthorize,
   handleToken,
+  handleRefreshToken,
 } from '../controllers/auth.controller.js'
 import { authenticateToken } from '../middlewares/auth.js'
 import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi'
@@ -21,6 +22,8 @@ import {
   AuthorizeResponse,
   TokenBody,
   TokenResponse,
+  RefreshTokenBody,
+  RefreshTokenResponse,
 } from '../schemas/auth.schema.js'
 
 export const registry = new OpenAPIRegistry()
@@ -118,6 +121,25 @@ registrar.register(router, {
     },
   },
   handler: handleToken,
+})
+
+registrar.register(router, {
+  method: 'post',
+  path: '/refresh',
+  tags: ['Authentication'],
+  summary: 'Refresh Access Token',
+  request: {
+    body: {
+      content: { 'application/json': { schema: RefreshTokenBody } },
+    },
+  },
+  responses: {
+    200: {
+      description: 'New Access Token',
+      content: { 'application/json': { schema: RefreshTokenResponse } },
+    },
+  },
+  handler: handleRefreshToken,
 })
 
 export default router

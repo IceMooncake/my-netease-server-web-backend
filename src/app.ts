@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url'
 
 // import routers
 import express from 'express'
+import cookieParser from 'cookie-parser'
 import authRoutes from './routes/index.js'
 
 // Importing jobs and listeners
@@ -20,6 +21,7 @@ groupSync()
 
 // Initialize the Express application
 const app = express()
+app.use(cookieParser())
 app.use(express.json())
 app.use('/api', authRoutes)
 

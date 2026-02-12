@@ -19,9 +19,16 @@ declare global {
 
 /** 验证 JWT 并挂载 user 到 req.user */
 export function authenticateToken(req: Request, res: Response, next: NextFunction) {
-  const authHeader = req.headers['authorization']
-  const token = authHeader && authHeader.split(' ')[1] // Bearer <token>
+  // 优先从Authorization header获取token
+  let token = req.headers['authorization']?.split(' ')[1]
+  
+  // 如果没有，从cookie获取
+  if (!token && req.cookies?.access_token) {
+    token = req.cookies.access_token
+  }
+  
   if (!token) return res.status(401).json({ message: '未登录' })
+  
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) return res.status(403).json({ message: '无效或过期的 Token' })
     req.user = decoded as AuthUser
