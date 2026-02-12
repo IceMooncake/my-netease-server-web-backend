@@ -71,7 +71,6 @@ async function login(qq: string, password: string) {
   const accessToken = jwt.sign(
     {
       qq: user.qq,
-      isAdmin: user.is_admin,
       type: 'access'
     },
     JWT_SECRET,
@@ -247,7 +246,6 @@ async function refreshToken(refreshToken: string) {
   const newAccessToken = jwt.sign(
     {
       qq: user.qq,
-      isAdmin: user.is_admin,
       type: 'access'
     },
     JWT_SECRET,
