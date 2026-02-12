@@ -27,7 +27,7 @@ const doc = generator.generateDocument({
   servers: [{ url: '/api', description: 'API v1' }],
 })
 
-const basePath = process.env.OPEN_API_PATH || './doc/'
+// const basePath = process.env.OPEN_API_PATH || './docs/'
 // Ensure directory exists or stick to what worked before
 // The original script used `process.env.OPEN_API_PATH || ''`.
 // And `fs.writeFileSync(basePath + 'openapi.json', ...)`

@@ -29,7 +29,7 @@ app.use('/api', authRoutes)
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 app.get('/openapi.json', (_, res) => {
-  res.sendFile(path.join(__dirname, '../doc/openapi.json'))
+  res.sendFile(path.join(__dirname, '../docs/openapi.json'))
 })
 
 // app.use(errorHandler);
