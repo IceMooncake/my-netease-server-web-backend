@@ -28,7 +28,7 @@ import {
 
 export const registry = new OpenAPIRegistry()
 const router = express.Router()
-const registrar = new RouteRegistrar(registry, '/api/auth')
+const registrar = new RouteRegistrar(registry, '/auth')
 
 registrar.register(router, {
   method: 'post',

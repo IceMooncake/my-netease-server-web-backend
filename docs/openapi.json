@@ -6,7 +6,7 @@
   },
   "servers": [
     {
-      "url": "/api",
+      "url": "",
       "description": "API v1"
     }
   ],
@@ -15,7 +15,7 @@
     "parameters": {}
   },
   "paths": {
-    "/api/auth/register": {
+    "/auth/register": {
       "post": {
         "tags": [
           "Authentication"
@@ -70,7 +70,7 @@
         }
       }
     },
-    "/api/auth/login": {
+    "/auth/login": {
       "post": {
         "tags": [
           "Authentication"
@@ -113,14 +113,29 @@
                     "msg": {
                       "type": "string"
                     },
-                    "token": {
+                    "access_token": {
+                      "type": "string"
+                    },
+                    "token_type": {
+                      "type": "string"
+                    },
+                    "expires_in": {
+                      "type": "number"
+                    },
+                    "refresh_token": {
+                      "type": "string"
+                    },
+                    "scope": {
                       "type": "string"
                     }
                   },
                   "required": [
                     "qq",
                     "msg",
-                    "token"
+                    "access_token",
+                    "token_type",
+                    "expires_in",
+                    "refresh_token"
                   ]
                 }
               }
@@ -129,7 +144,7 @@
         }
       }
     },
-    "/api/auth/confirm-register": {
+    "/auth/confirm-register": {
       "post": {
         "tags": [
           "Authentication"
@@ -179,7 +194,7 @@
         }
       }
     },
-    "/api/auth/authorize": {
+    "/auth/authorize": {
       "get": {
         "tags": [
           "OAuth2"
@@ -252,7 +267,7 @@
         }
       }
     },
-    "/api/auth/token": {
+    "/auth/token": {
       "post": {
         "tags": [
           "OAuth2"
@@ -313,6 +328,10 @@
                     },
                     "refresh_token": {
                       "type": "string"
+                    },
+                    "scope": {
+                      "type": "string",
+                      "nullable": true
                     }
                   },
                   "required": [
@@ -328,7 +347,68 @@
         }
       }
     },
-    "/api/admin/applications": {
+    "/auth/refresh": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Refresh Access Token",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "refresh_token": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "refresh_token"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "New Access Token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": {
+                      "type": "string"
+                    },
+                    "token_type": {
+                      "type": "string"
+                    },
+                    "expires_in": {
+                      "type": "number"
+                    },
+                    "refresh_token": {
+                      "type": "string"
+                    },
+                    "scope": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "access_token",
+                    "token_type",
+                    "expires_in",
+                    "refresh_token"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/applications": {
       "get": {
         "tags": [
           "Admin"
@@ -381,7 +461,7 @@
         }
       }
     },
-    "/api/admin/applications/{id}/decide": {
+    "/admin/applications/{id}/decide": {
       "post": {
         "tags": [
           "Admin"
@@ -440,7 +520,7 @@
         }
       }
     },
-    "/api/territories/apply": {
+    "/territories/apply": {
       "post": {
         "tags": [
           "Territories"
@@ -499,7 +579,7 @@
         }
       }
     },
-    "/api/territories/{id}/contribute": {
+    "/territories/{id}/contribute": {
       "post": {
         "tags": [
           "Territories"
@@ -556,7 +636,7 @@
         }
       }
     },
-    "/api/territories/{id}/proposals/spend": {
+    "/territories/{id}/proposals/spend": {
       "post": {
         "tags": [
           "Proposals"
@@ -613,7 +693,7 @@
         }
       }
     },
-    "/api/territories/{id}/proposals/join": {
+    "/territories/{id}/proposals/join": {
       "post": {
         "tags": [
           "Proposals"
@@ -670,7 +750,7 @@
         }
       }
     },
-    "/api/territories/{id}/proposals/expel": {
+    "/territories/{id}/proposals/expel": {
       "post": {
         "tags": [
           "Proposals"
@@ -727,7 +807,7 @@
         }
       }
     },
-    "/api/territories/proposals/{proposalId}/vote": {
+    "/territories/proposals/{proposalId}/vote": {
       "post": {
         "tags": [
           "Proposals"

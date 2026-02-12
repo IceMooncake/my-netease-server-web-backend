@@ -18,7 +18,7 @@ import { z } from 'zod'
 
 export const registry = new OpenAPIRegistry()
 const r = Router()
-const registrar = new RouteRegistrar(registry, '/api/territories')
+const registrar = new RouteRegistrar(registry, '/territories')
 
 r.use(authenticateToken, requireAuth)
 
