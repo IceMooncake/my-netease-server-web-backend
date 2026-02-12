@@ -9,6 +9,10 @@ import {
   RegisterResponse,
   LoginResponse,
   ConfirmRegisterResponse,
+  AuthorizeQuery,
+  AuthorizeResponse,
+  TokenBody,
+  TokenResponse,
 } from '../schemas/auth.schema.js'
 
 export async function handleRegister(req: Request, res: Response) {
@@ -43,5 +47,40 @@ export async function handleLogin(req: Request, res: Response) {
       return { msg: '登录成功', qq, token }
     },
     { response: LoginResponse, errorCode: 401 }
+  )
+}
+
+export async function handleAuthorize(req: Request, res: Response) {
+  handleAsync(
+    res,
+    async () => {
+      // @ts-ignore
+      const userQQ = req.user.qq
+      const { client_id, redirect_uri, response_type, state } = AuthorizeQuery.parse(req.query)
+      const result = await authService.authorize(
+        userQQ,
+        client_id,
+        redirect_uri,
+        response_type,
+        state
+      )
+      return {
+        code: result.code,
+        redirect_uri: result.redirectUri,
+        state: result.state,
+      }
+    },
+    { response: AuthorizeResponse }
+  )
+}
+
+export async function handleToken(req: Request, res: Response) {
+  handleAsync(
+    res,
+    async () => {
+      const { grant_type, code, redirect_uri, client_id, client_secret } = TokenBody.parse(req.body)
+      return await authService.token(grant_type, code, redirect_uri, client_id, client_secret)
+    },
+    { response: TokenResponse }
   )
 }

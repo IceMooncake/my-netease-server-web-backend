@@ -90,6 +90,9 @@ model users {
   is_admin          Int                @default(0) @db.TinyInt
   territories       territories?
   territory_members territory_members?
+  oauth_access_tokens      oauth_access_tokens[]
+  oauth_refresh_tokens     oauth_refresh_tokens[]
+  oauth_authorization_codes oauth_authorization_codes[]
 }
 
 model verification_codes {
@@ -99,6 +102,68 @@ model verification_codes {
   verified   Boolean?  @default(false)
   created_at DateTime? @default(now()) @db.DateTime(0)
   password   String?   @db.VarChar(255)
+}
+
+model oauth_clients {
+  client_id     String    @id @db.VarChar(80)
+  client_secret String?   @db.VarChar(80)
+  redirect_uri  String    @db.VarChar(2000)
+  grant_types   String?   @db.VarChar(80)
+  scope         String?   @db.VarChar(2000)
+  user_id       String?   @db.VarChar(255)
+  created_at    DateTime? @default(now()) @db.Timestamp(0)
+  updated_at    DateTime? @default(now()) @updatedAt @db.Timestamp(0)
+
+  oauth_access_tokens       oauth_access_tokens[]
+  oauth_refresh_tokens      oauth_refresh_tokens[]
+  oauth_authorization_codes oauth_authorization_codes[]
+}
+
+model oauth_access_tokens {
+  access_token String    @id @db.VarChar(100)
+  client_id    String    @db.VarChar(80)
+  user_qq      String    @db.VarChar(255)
+  expires_at   DateTime? @db.Timestamp(0)
+  scope        String?   @db.VarChar(2000)
+  created_at   DateTime? @default(now()) @db.Timestamp(0)
+
+  client oauth_clients @relation(fields: [client_id], references: [client_id], onDelete: Cascade)
+  user   users         @relation(fields: [user_qq], references: [qq], onDelete: Cascade)
+
+  @@index([client_id], map: "oauth_access_tokens_client_id_fkey")
+  @@index([user_qq], map: "oauth_access_tokens_user_qq_fkey")
+}
+
+model oauth_refresh_tokens {
+  refresh_token String    @id @db.VarChar(100)
+  access_token  String    @db.VarChar(100)
+  client_id     String    @db.VarChar(80)
+  user_qq       String    @db.VarChar(255)
+  expires_at    DateTime? @db.Timestamp(0)
+  scope         String?   @db.VarChar(2000)
+  created_at    DateTime? @default(now()) @db.Timestamp(0)
+
+  client oauth_clients @relation(fields: [client_id], references: [client_id], onDelete: Cascade)
+  user   users         @relation(fields: [user_qq], references: [qq], onDelete: Cascade)
+
+  @@index([client_id], map: "oauth_refresh_tokens_client_id_fkey")
+  @@index([user_qq], map: "oauth_refresh_tokens_user_qq_fkey")
+}
+
+model oauth_authorization_codes {
+  authorization_code String    @id @db.VarChar(100)
+  expires_at         DateTime? @db.Timestamp(0)
+  redirect_uri       String?   @db.VarChar(2000)
+  scope              String?   @db.VarChar(2000)
+  client_id          String    @db.VarChar(80)
+  user_qq            String    @db.VarChar(255)
+  created_at         DateTime? @default(now()) @db.Timestamp(0)
+
+  client oauth_clients @relation(fields: [client_id], references: [client_id], onDelete: Cascade)
+  user   users         @relation(fields: [user_qq], references: [qq], onDelete: Cascade)
+
+  @@index([client_id], map: "oauth_authorization_codes_client_id_fkey")
+  @@index([user_qq], map: "oauth_authorization_codes_user_qq_fkey")
 }
 
 enum proposals_type {

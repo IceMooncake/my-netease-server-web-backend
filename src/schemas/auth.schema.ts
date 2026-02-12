@@ -38,3 +38,35 @@ export const ConfirmRegisterResponse = z.object({
   qq: z.string(),
   msg: z.string(),
 })
+
+// OAuth2 Authorize Request
+export const AuthorizeQuery = z.object({
+  client_id: z.string(),
+  redirect_uri: z.string().url(),
+  response_type: z.enum(['code']),
+  state: z.string().optional(),
+})
+
+// OAuth2 Authorize Response
+export const AuthorizeResponse = z.object({
+  code: z.string(),
+  redirect_uri: z.string(),
+  state: z.string().optional(),
+})
+
+// OAuth2 Token Request
+export const TokenBody = z.object({
+  grant_type: z.enum(['authorization_code']),
+  code: z.string(),
+  redirect_uri: z.string().url(),
+  client_id: z.string(),
+  client_secret: z.string().optional(),
+})
+
+// OAuth2 Token Response
+export const TokenResponse = z.object({
+  access_token: z.string(),
+  token_type: z.string(),
+  expires_in: z.number(),
+  refresh_token: z.string(),
+})

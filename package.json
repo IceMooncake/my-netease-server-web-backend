@@ -5,8 +5,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "prisma db pull && prisma generate && tsc --noEmit && nodemon",
-    "format": "prettier --write ."
+    "dev": "nodemon",
+    "format": "prettier --write .",
+    "prisma:gen": "prisma generate",
+    "api:gen": "tsx ./scripts/generate-openapi.ts",
+    "type-check": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",

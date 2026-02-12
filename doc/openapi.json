@@ -4,12 +4,18 @@
     "title": "Minecraft Territory API",
     "version": "1.0.0"
   },
+  "servers": [
+    {
+      "url": "/api",
+      "description": "API v1"
+    }
+  ],
   "components": {
     "schemas": {},
     "parameters": {}
   },
   "paths": {
-    "/auth/register": {
+    "/api/auth/register": {
       "post": {
         "tags": [
           "Authentication"
@@ -64,7 +70,7 @@
         }
       }
     },
-    "/auth/login": {
+    "/api/auth/login": {
       "post": {
         "tags": [
           "Authentication"
@@ -101,10 +107,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "msg": {
+                    "qq": {
                       "type": "string"
                     },
-                    "qq": {
+                    "msg": {
                       "type": "string"
                     },
                     "token": {
@@ -112,8 +118,8 @@
                     }
                   },
                   "required": [
-                    "msg",
                     "qq",
+                    "msg",
                     "token"
                   ]
                 }
@@ -123,7 +129,7 @@
         }
       }
     },
-    "/auth/confirm-register": {
+    "/api/auth/confirm-register": {
       "post": {
         "tags": [
           "Authentication"
@@ -155,16 +161,16 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "msg": {
+                    "qq": {
                       "type": "string"
                     },
-                    "qq": {
+                    "msg": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "msg",
-                    "qq"
+                    "qq",
+                    "msg"
                   ]
                 }
               }
@@ -173,7 +179,156 @@
         }
       }
     },
-    "/admin/applications": {
+    "/api/auth/authorize": {
+      "get": {
+        "tags": [
+          "OAuth2"
+        ],
+        "summary": "OAuth2 Authorize Endpoint",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "client_id",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "required": true,
+            "name": "redirect_uri",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "code"
+              ]
+            },
+            "required": true,
+            "name": "response_type",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "state",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorization Code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "redirect_uri": {
+                      "type": "string"
+                    },
+                    "state": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "redirect_uri"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/token": {
+      "post": {
+        "tags": [
+          "OAuth2"
+        ],
+        "summary": "OAuth2 Token Endpoint",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "grant_type": {
+                    "type": "string",
+                    "enum": [
+                      "authorization_code"
+                    ]
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "redirect_uri": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "client_id": {
+                    "type": "string"
+                  },
+                  "client_secret": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "grant_type",
+                  "code",
+                  "redirect_uri",
+                  "client_id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Access Token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": {
+                      "type": "string"
+                    },
+                    "token_type": {
+                      "type": "string"
+                    },
+                    "expires_in": {
+                      "type": "number"
+                    },
+                    "refresh_token": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "access_token",
+                    "token_type",
+                    "expires_in",
+                    "refresh_token"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/applications": {
       "get": {
         "tags": [
           "Admin"
@@ -196,7 +351,7 @@
         ],
         "responses": {
           "200": {
-            "description": "List",
+            "description": "List of applications",
             "content": {
               "application/json": {
                 "schema": {
@@ -208,17 +363,16 @@
                         "type": "number"
                       },
                       "status": {
-                        "type": "string",
-                        "enum": [
-                          "pending",
-                          "approved",
-                          "rejected"
-                        ]
+                        "type": "string"
                       }
                     },
                     "required": [
-                      "id"
-                    ]
+                      "id",
+                      "status"
+                    ],
+                    "additionalProperties": {
+                      "nullable": true
+                    }
                   }
                 }
               }
@@ -227,7 +381,7 @@
         }
       }
     },
-    "/admin/applications/{id}/decide": {
+    "/api/admin/applications/{id}/decide": {
       "post": {
         "tags": [
           "Admin"
@@ -286,7 +440,7 @@
         }
       }
     },
-    "/territories/apply": {
+    "/api/territories/apply": {
       "post": {
         "tags": [
           "Territories"
@@ -331,12 +485,12 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "applicationId": {
-                      "type": "number"
+                    "id": {
+                      "type": "string"
                     }
                   },
                   "required": [
-                    "applicationId"
+                    "id"
                   ]
                 }
               }
@@ -345,7 +499,7 @@
         }
       }
     },
-    "/territories/{id}/contribute": {
+    "/api/territories/{id}/contribute": {
       "post": {
         "tags": [
           "Territories"
@@ -402,7 +556,7 @@
         }
       }
     },
-    "/territories/{id}/propose-spend": {
+    "/api/territories/{id}/proposals/spend": {
       "post": {
         "tags": [
           "Proposals"
@@ -459,7 +613,7 @@
         }
       }
     },
-    "/territories/{id}/propose-join": {
+    "/api/territories/{id}/proposals/join": {
       "post": {
         "tags": [
           "Proposals"
@@ -516,7 +670,7 @@
         }
       }
     },
-    "/territories/{id}/propose-expel": {
+    "/api/territories/{id}/proposals/expel": {
       "post": {
         "tags": [
           "Proposals"
@@ -573,7 +727,7 @@
         }
       }
     },
-    "/territories/proposals/{proposalId}/vote": {
+    "/api/territories/proposals/{proposalId}/vote": {
       "post": {
         "tags": [
           "Proposals"

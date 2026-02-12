@@ -52,8 +52,125 @@ async function login(qq: string, password: string) {
   return token
 }
 
+async function authorize(
+  userQQ: string,
+  clientId: string,
+  redirectUri: string,
+  responseType: string,
+  state?: string
+) {
+  if (responseType !== 'code') {
+    throw new Error('Unsupported response_type')
+  }
+
+  const client = await prisma.oauth_clients.findUnique({
+    where: { client_id: clientId },
+  })
+
+  if (!client) {
+    throw new Error('Invalid client_id')
+  }
+
+  // Generate code
+  const code = Math.random().toString(36).substring(2, 15)
+
+  // Store code
+  await prisma.oauth_authorization_codes.create({
+    data: {
+      authorization_code: code,
+      redirect_uri: redirectUri,
+      client_id: clientId,
+      user_qq: userQQ,
+      expires_at: new Date(Date.now() + 10 * 60 * 1000), // 10 mins
+    },
+  })
+
+  return { code, redirectUri, state }
+}
+
+async function token(
+  grantType: string,
+  code: string,
+  redirectUri: string,
+  clientId: string,
+  clientSecret?: string
+) {
+  if (grantType !== 'authorization_code') {
+    throw new Error('Unsupported grant_type')
+  }
+
+  const authCode = await prisma.oauth_authorization_codes.findUnique({
+    where: { authorization_code: code },
+    include: { client: true },
+  })
+
+  if (!authCode) {
+    throw new Error('Invalid authorization code')
+  }
+
+  if (authCode.expires_at && authCode.expires_at < new Date()) {
+    throw new Error('Authorization code expired')
+  }
+
+  if (authCode.client_id !== clientId) {
+    throw new Error('Invalid client_id')
+  }
+
+  // Generate access token (JWT)
+  const accessToken = jwt.sign(
+    {
+      qq: authCode.user_qq,
+      clientId: clientId,
+    },
+    JWT_SECRET,
+    { expiresIn: '1h' }
+  )
+
+  // Generate refresh token
+  const refreshToken =
+    Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2)
+
+  // Store tokens (Wait, verify user exists first?)
+  // Assuming user exists because code exists
+
+  await prisma.oauth_access_tokens.create({
+    data: {
+      access_token: accessToken,
+      client_id: clientId,
+      user_qq: authCode.user_qq,
+      expires_at: new Date(Date.now() + 3600 * 1000),
+      scope: authCode.scope,
+    },
+  })
+
+  await prisma.oauth_refresh_tokens.create({
+    data: {
+      refresh_token: refreshToken,
+      access_token: accessToken,
+      client_id: clientId,
+      user_qq: authCode.user_qq,
+      expires_at: new Date(Date.now() + 30 * 24 * 3600 * 1000), // 30 days
+      scope: authCode.scope,
+    },
+  })
+
+  // Delete used code
+  await prisma.oauth_authorization_codes.delete({
+    where: { authorization_code: code },
+  })
+
+  return {
+    access_token: accessToken,
+    token_type: 'Bearer',
+    expires_in: 3600,
+    refresh_token: refreshToken,
+  }
+}
+
 export default {
   register,
   confirmRegister,
   login,
+  authorize,
+  token,
 }

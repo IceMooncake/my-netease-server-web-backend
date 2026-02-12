@@ -2,5 +2,5 @@
   "watch": ["src"],
   "ext": "ts,js,json",
   "ignore": ["dist"],
-  "exec": "tsc --noEmit && tsx watch ./src/server.ts"
+  "exec": "tsx ./src/server.ts"
 }
