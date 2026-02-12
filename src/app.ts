@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url'
 // import routers
 import express from 'express'
 import cookieParser from 'cookie-parser'
+import cors from 'cors'
 import authRoutes from './routes/index.js'
 
 // Importing jobs and listeners
@@ -21,6 +22,15 @@ groupSync()
 
 // Initialize the Express application
 const app = express()
+
+// Enable CORS if in development environment
+if (process.env.NODE_ENV === 'development') {
+  app.use(cors({
+    origin: process.env.ALLOW_ORIGIN, // Allow all origins in development
+    credentials: true
+  }))
+}
+
 app.use(cookieParser())
 app.use(express.json())
 app.use('/api', authRoutes)

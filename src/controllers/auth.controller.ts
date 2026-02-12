@@ -46,9 +46,10 @@ export async function handleLogin(req: Request, res: Response) {
       const tokenData = await authService.login(qq, password)
       
       // 设置响应头存储token到浏览器
+      const isProduction = process.env.NODE_ENV === 'production'
       res.setHeader('Set-Cookie', [
-        `access_token=${tokenData.access_token}; HttpOnly; Secure; SameSite=Strict; Max-Age=${tokenData.expires_in}`,
-        `refresh_token=${tokenData.refresh_token}; HttpOnly; Secure; SameSite=Strict; Max-Age=${30 * 24 * 3600}`
+        `access_token=${tokenData.access_token}; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=${isProduction ? 'None' : 'Lax'}; Max-Age=${tokenData.expires_in}`,
+        `refresh_token=${tokenData.refresh_token}; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=${isProduction ? 'None' : 'Lax'}; Max-Age=${30 * 24 * 3600}`
       ])
       
       return { msg: '登录成功', qq, ...tokenData }
