@@ -1,5 +1,5 @@
-import prisma from '../database/prisma.ts'
-import { napcatService } from '../services/index.ts'
+import prisma from '../database/prisma.js'
+import { napcatService } from '../services/index.js'
 
 // -----------------工具-----------------
 

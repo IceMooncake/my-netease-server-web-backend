@@ -1,7 +1,7 @@
 // src/routes/territories.routes.ts
 import { Router } from 'express'
-import { authenticateToken, requireAuth } from './middlewares/auth.ts'
-import * as C from '../controllers/territory.controller.ts'
+import { authenticateToken, requireAuth } from '../middlewares/auth.js'
+import * as C from '../controllers/territory.controller.js'
 
 const r = Router()
 r.use(authenticateToken, requireAuth)

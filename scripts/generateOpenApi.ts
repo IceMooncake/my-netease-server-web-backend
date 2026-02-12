@@ -7,13 +7,13 @@ import {
   RegisterBody,
   LoginBody,
   ConfirmRegisterBody,
-} from '../src/schemas/auth.schema.ts'
+} from '../src/schemas/auth.schema.js'
 
 import {
   ListApplicationsQuery,
   DecideApplicationBody,
   DecideApplicationParams,
-} from '../src/schemas/admin.schema.ts'
+} from '../src/schemas/admin.schema.js'
 
 import {
   ApplyBody,
@@ -23,7 +23,7 @@ import {
   VoteBody,
   VoteParams,
   TerritoryIdParams,
-} from '../src/schemas/territory.schema.ts'
+} from '../src/schemas/territory.schema.js'
 
 export default function () {
   // -----------------------------

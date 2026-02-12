@@ -1,7 +1,7 @@
 // controllers/authController.ts
 import { Request, Response } from 'express'
-import { handleAsync } from '../utils/handleAsync.ts'
-import { authService } from '../services/index.ts'
+import { handleAsync } from '../utils/handleAsync.js'
+import { authService } from '../services/index.js'
 import {
   RegisterBody,
   LoginBody,
@@ -9,7 +9,7 @@ import {
   RegisterResponse,
   LoginResponse,
   ConfirmRegisterResponse,
-} from '../schemas/auth.schema.ts'
+} from '../schemas/auth.schema.js'
 
 export async function handleRegister(req: Request, res: Response) {
   handleAsync(

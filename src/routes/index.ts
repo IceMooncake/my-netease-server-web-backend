@@ -1,7 +1,7 @@
 import { Router } from 'express'
-import territories from './territories.routes.ts'
-import admin from './admin.routes.ts'
-import auth from './auth.routes.ts'
+import territories from './territories.routes.js'
+import admin from './admin.routes.js'
+import auth from './auth.routes.js'
 
 const router = Router()
 

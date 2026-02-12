@@ -1,6 +1,6 @@
-import * as territoryService from './territory.service.ts'
-import * as territoryProposal from './territoryProposal.service.ts'
-import * as territoryRules from './territoryRules.ts'
+import * as territoryService from './territory.service.js'
+import * as territoryProposal from './territoryProposal.service.js'
+import * as territoryRules from './territoryRules.js'
 
 export default {
   ...territoryService,

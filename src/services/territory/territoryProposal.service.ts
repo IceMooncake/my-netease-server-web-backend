@@ -1,5 +1,5 @@
-import prisma from '../../database/prisma.ts'
-import { requiredVotesFor } from './territoryRules.ts'
+import prisma from '../../database/prisma.js'
+import { requiredVotesFor } from './territoryRules.js'
 
 /** 发起提案：消费/拉人/踢人（不立即执行） */
 export async function createProposal(

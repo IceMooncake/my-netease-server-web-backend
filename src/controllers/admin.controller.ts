@@ -1,14 +1,14 @@
 import { Request, Response } from 'express'
-import { territoryService } from '../services/index.ts'
-import prisma from '../database/prisma.ts'
+import { territoryService } from '../services/index.js'
+import prisma from '../database/prisma.js'
 import {
   ListApplicationsQuery,
   DecideApplicationBody,
   DecideApplicationParams,
   ListApplicationsResponse,
   DecideApplicationResponse,
-} from '../schemas/admin.schema.ts'
-import { handleAsync } from '../utils/handleAsync.ts'
+} from '../schemas/admin.schema.js'
+import { handleAsync } from '../utils/handleAsync.js'
 
 export function listApplications(req: Request, res: Response) {
   return handleAsync(

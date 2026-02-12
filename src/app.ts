@@ -3,15 +3,15 @@ import { fileURLToPath } from 'url';
 
 // import routers
 import express from 'express'
-import authRoutes from './routes/index.routes.ts'
+import authRoutes from './routes/index.js'
 
 // Importing jobs and listeners
-import startJobs from './jobs/index.job.ts'
-import startListeners from './listeners/index.listener.ts'
+import { syncGroupMember } from './jobs/index.js'
+import { groupSync } from './listeners/index.js'
 
 // start jobs and listeners
-await startJobs()
-startListeners()
+await syncGroupMember()
+groupSync()
 
 // Initialize the Express application
 const app = express()

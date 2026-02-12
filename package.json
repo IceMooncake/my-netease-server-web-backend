@@ -5,7 +5,6 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "prisma db pull && prisma generate && tsc --noEmit && node --loader ts-node/esm ./scripts/index.ts && nodemon",
     "dev": "prisma db pull && prisma generate && tsc --noEmit && nodemon",
     "format": "prettier --write ."
   },
@@ -17,11 +16,12 @@
     "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^24.2.1",
+    "@types/node": "^24.10.13",
     "nodemon": "^3.1.11",
     "prettier": "^3.6.2",
     "prisma": "^6.17.1",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.2"
   },
   "dependencies": {

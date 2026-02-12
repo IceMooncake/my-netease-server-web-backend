@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
-import { comparePassword } from '../../utils/hash.ts'
-import otpService from '../sms/sms.service.ts'
-import prisma from '../../database/prisma.ts'
+import { comparePassword } from '../../utils/hash.js'
+import otpService from '../sms/sms.service.js'
+import prisma from '../../database/prisma.js'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'default_secret'
 const JWT_EXPIRES_IN = '7d' // 7天有效

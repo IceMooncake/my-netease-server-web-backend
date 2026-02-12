@@ -1,4 +1,4 @@
-import prisma from '../../database/prisma.ts'
+import prisma from '../../database/prisma.js'
 
 /** 提交创建领地申请（需要管理员审核） */
 export async function applyCreateTerritory(

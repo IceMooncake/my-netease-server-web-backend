@@ -1,4 +1,4 @@
-import { napcatService, qqMemberService } from '../services/index.ts'
+import { napcatService, qqMemberService } from '../services/index.js'
 
 export default async function () {
   const groupId = Number(process.env.NAPCAT_GROUPID)

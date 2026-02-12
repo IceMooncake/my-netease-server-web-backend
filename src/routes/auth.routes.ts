@@ -4,7 +4,7 @@ import {
   handleRegister,
   handleLogin,
   handleConfirmRegister,
-} from '../controllers/auth.controller.ts'
+} from '../controllers/auth.controller.js'
 
 const router = express.Router()
 

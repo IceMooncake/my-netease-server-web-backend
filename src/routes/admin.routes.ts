@@ -1,7 +1,7 @@
 // src/routes/admin.routes.ts
 import { Router } from 'express'
-import { requireAdmin, authenticateToken } from './middlewares/auth.ts'
-import * as Admin from '../controllers/admin.controller.ts'
+import { requireAdmin, authenticateToken } from '../middlewares/auth.js'
+import * as Admin from '../controllers/admin.controller.js'
 
 const r = Router()
 r.use(authenticateToken, requireAdmin)

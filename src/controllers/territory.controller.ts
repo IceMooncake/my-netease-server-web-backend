@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { territoryService } from '../services/index.ts'
+import { territoryService } from '../services/index.js'
 import {
   ApplyBody,
   ContributeBody,
@@ -10,8 +10,8 @@ import {
   VoteParams,
   ApplyResponse,
   ProposalIdResponse,
-} from '../schemas/territory.schema.ts'
-import { handleAsync } from '../utils/handleAsync.ts'
+} from '../schemas/territory.schema.js'
+import { handleAsync } from '../utils/handleAsync.js'
 
 // apply
 export function apply(req: Request, res: Response) {
