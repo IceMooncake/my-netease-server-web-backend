@@ -19,6 +19,34 @@
       }
     },
     "schemas": {
+      "UserProfileResponse": {
+        "type": "object",
+        "properties": {
+          "qq": {
+            "type": "string"
+          },
+          "nick_name": {
+            "type": "string",
+            "nullable": true
+          },
+          "personal_credits": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string"
+          },
+          "is_admin": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "qq",
+          "nick_name",
+          "personal_credits",
+          "status",
+          "is_admin"
+        ]
+      },
       "AdminTaskType": {
         "type": "string",
         "enum": [
@@ -235,6 +263,56 @@
           "territoryId"
         ]
       },
+      "TerritoryListResponse": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "team_id": {
+              "type": "string"
+            },
+            "x1": {
+              "type": "number"
+            },
+            "z1": {
+              "type": "number"
+            },
+            "x2": {
+              "type": "number"
+            },
+            "z2": {
+              "type": "number"
+            },
+            "area": {
+              "type": "number"
+            },
+            "type": {
+              "$ref": "#/components/schemas/TerritoryType"
+            },
+            "status": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "team_id",
+            "x1",
+            "z1",
+            "x2",
+            "z2",
+            "area",
+            "type",
+            "status"
+          ]
+        }
+      },
       "CreateTeamResponse": {
         "type": "object",
         "properties": {
@@ -319,6 +397,118 @@
           "newOwnerId"
         ]
       },
+      "TeamSummaryResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "owner_id": {
+            "type": "string"
+          },
+          "team_credits": {
+            "type": "number"
+          },
+          "members_count": {
+            "type": "number"
+          },
+          "territories_count": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "owner_id",
+          "team_credits"
+        ]
+      },
+      "MyTeamsResponse": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/TeamSummaryResponse"
+        }
+      },
+      "TeamDetailResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "owner_id": {
+            "type": "string"
+          },
+          "team_credits": {
+            "type": "number"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "qq": {
+                  "type": "string"
+                },
+                "joined_at": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "qq",
+                "joined_at"
+              ]
+            }
+          },
+          "territories": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string"
+                },
+                "area": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "status",
+                "area"
+              ]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "owner_id",
+          "team_credits",
+          "members",
+          "territories"
+        ]
+      },
       "ContributeBody": {
         "type": "object",
         "properties": {
@@ -355,6 +545,59 @@
           "voteId",
           "decision"
         ]
+      },
+      "VoteListResponse": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "team_id": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string",
+              "nullable": true
+            },
+            "creator_qq": {
+              "type": "string"
+            },
+            "deadline": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "yes_votes": {
+              "type": "number"
+            },
+            "no_votes": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "id",
+            "team_id",
+            "type",
+            "status",
+            "title",
+            "creator_qq",
+            "deadline"
+          ]
+        }
       }
     },
     "parameters": {}
@@ -753,6 +996,32 @@
         }
       }
     },
+    "/auth/me": {
+      "get": {
+        "tags": [
+          "Authentication",
+          "User"
+        ],
+        "summary": "Get current user profile",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/admin/tasks": {
       "get": {
         "tags": [
@@ -883,6 +1152,41 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/territories/": {
+      "get": {
+        "tags": [
+          "Territory"
+        ],
+        "summary": "List territories",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "teamId",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of territories",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerritoryListResponse"
                 }
               }
             }
@@ -1026,6 +1330,66 @@
         }
       }
     },
+    "/teams/mine": {
+      "get": {
+        "tags": [
+          "Team"
+        ],
+        "summary": "Get teams I belong to",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of teams",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyTeamsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/teams/{teamId}": {
+      "get": {
+        "tags": [
+          "Team"
+        ],
+        "summary": "Get team details",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "teamId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Team details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamDetailResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/credits/contribute": {
       "post": {
         "tags": [
@@ -1065,7 +1429,7 @@
         "tags": [
           "Vote"
         ],
-        "summary": "Cast a vote on a proposal",
+        "summary": "Cast a vote",
         "security": [
           {
             "bearerAuth": []
@@ -1087,6 +1451,55 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/votes/": {
+      "get": {
+        "tags": [
+          "Vote"
+        ],
+        "summary": "List votes",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "teamId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "APPROVED",
+                "REJECTED",
+                "EXPIRED"
+              ]
+            },
+            "required": false,
+            "name": "status",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of votes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoteListResponse"
                 }
               }
             }

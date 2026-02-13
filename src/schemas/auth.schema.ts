@@ -83,3 +83,12 @@ export const RefreshTokenBody = z.object({
 
 // Refresh Token Response (same as TokenResponse)
 export const RefreshTokenResponse = TokenResponse
+
+
+export const UserProfileResponse = z.object({
+  qq: z.string(),
+  nick_name: z.string().nullable(),
+  personal_credits: z.number(),
+  status: z.string(),
+  is_admin: z.number()
+}).openapi('UserProfileResponse')

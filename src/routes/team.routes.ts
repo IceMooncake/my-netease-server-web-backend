@@ -4,12 +4,15 @@ import * as controller from '../controllers/team.controller.js'
 import { authenticateToken } from '../middlewares/auth.js'
 import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi'
 import { RouteRegistrar } from '../utils/routeRegistrar.js'
+import { z } from 'zod'
 import { 
     CreateTeamBody, 
     CreateTeamResponse, 
     JoinTeamBody, 
     TransferBody,
-    SuccessResponse
+    SuccessResponse,
+    MyTeamsResponse,
+    TeamDetailResponse
 } from '../schemas/team.schema.js'
 
 export const registry = new OpenAPIRegistry()
@@ -97,6 +100,39 @@ registrar.register(router, {
     },
   },
   handler: controller.transferOwnership,
+})
+
+registrar.register(router, {
+  method: 'get',
+  path: '/mine',
+  tags: ['Team'],
+  summary: 'Get teams I belong to',
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'List of teams',
+      content: { 'application/json': { schema: MyTeamsResponse } },
+    },
+  },
+  handler: controller.getMyTeams,
+})
+
+registrar.register(router, {
+  method: 'get',
+  path: '/{teamId}',
+  tags: ['Team'],
+  summary: 'Get team details',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({ teamId: z.string() })
+  },
+  responses: {
+    200: {
+      description: 'Team details',
+      content: { 'application/json': { schema: TeamDetailResponse } },
+    },
+  },
+  handler: controller.getTeamDetails,
 })
 
 export default router

@@ -8,7 +8,9 @@ import {
     ProposeCreateBody, 
     ProposeDeleteBody, 
     ProposeCreateResponse, 
-    SuccessResponse 
+    SuccessResponse,
+    TerritoryQuery,
+    TerritoryListResponse
 } from '../schemas/territory.schema.js'
 
 export const registry = new OpenAPIRegistry()
@@ -55,6 +57,24 @@ registrar.register(router, {
     },
   },
   handler: controller.proposeDelete,
+})
+
+registrar.register(router, {
+  method: 'get',
+  path: '/',
+  tags: ['Territory'],
+  summary: 'List territories',
+  security: [{ bearerAuth: [] }],
+  request: {
+    query: TerritoryQuery
+  },
+  responses: {
+    200: {
+      description: 'List of territories',
+      content: { 'application/json': { schema: TerritoryListResponse } },
+    },
+  },
+  handler: controller.listTerritories,
 })
 
 export default router

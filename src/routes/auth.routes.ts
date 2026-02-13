@@ -1,13 +1,7 @@
-// routes/authRoutes.ts
-import express from 'express'
-import {
-  handleRegister,
-  handleLogin,
-  handleConfirmRegister,
-  handleAuthorize,
-  handleToken,
-  handleRefreshToken,
-} from '../controllers/auth.controller.js'
+// src/routes/auth.routes.ts
+import { Router } from 'express'
+import * as controller from '../controllers/auth.controller.js'
+import * as userController from '../controllers/user.controller.js'
 import { authenticateToken } from '../middlewares/auth.js'
 import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi'
 import { RouteRegistrar } from '../utils/routeRegistrar.js'
@@ -24,10 +18,11 @@ import {
   TokenResponse,
   RefreshTokenBody,
   RefreshTokenResponse,
+  UserProfileResponse
 } from '../schemas/auth.schema.js'
 
 export const registry = new OpenAPIRegistry()
-const router = express.Router()
+const router = Router()
 const registrar = new RouteRegistrar(registry, '/auth')
 
 registrar.register(router, {
@@ -46,7 +41,7 @@ registrar.register(router, {
       content: { 'application/json': { schema: RegisterResponse } },
     },
   },
-  handler: handleRegister,
+  handler: controller.handleRegister,
 })
 
 registrar.register(router, {
@@ -65,7 +60,7 @@ registrar.register(router, {
       content: { 'application/json': { schema: LoginResponse } },
     },
   },
-  handler: handleLogin,
+  handler: controller.handleLogin,
 })
 
 registrar.register(router, {
@@ -84,7 +79,7 @@ registrar.register(router, {
       content: { 'application/json': { schema: ConfirmRegisterResponse } },
     },
   },
-  handler: handleConfirmRegister,
+  handler: controller.handleConfirmRegister,
 })
 
 registrar.register(router, {
@@ -101,7 +96,7 @@ registrar.register(router, {
       content: { 'application/json': { schema: AuthorizeResponse } },
     },
   },
-  handler: [authenticateToken, handleAuthorize] as any, // Cast because RouteConfig expects single handler but express supports array
+  handler: [authenticateToken, controller.handleAuthorize] as any,
 })
 
 registrar.register(router, {
@@ -120,7 +115,7 @@ registrar.register(router, {
       content: { 'application/json': { schema: TokenResponse } },
     },
   },
-  handler: handleToken,
+  handler: controller.handleToken,
 })
 
 registrar.register(router, {
@@ -139,7 +134,22 @@ registrar.register(router, {
       content: { 'application/json': { schema: RefreshTokenResponse } },
     },
   },
-  handler: handleRefreshToken,
+  handler: controller.handleRefreshToken,
+})
+
+registrar.register(router, {
+  method: 'get',
+  path: '/me',
+  tags: ['Authentication', 'User'],
+  summary: 'Get current user profile',
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'User profile',
+      content: { 'application/json': { schema: UserProfileResponse } },
+    },
+  },
+  handler: [authenticateToken, userController.getMe] as any,
 })
 
 export default router

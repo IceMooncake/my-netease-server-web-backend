@@ -141,4 +141,19 @@ export async function proposeDeleteTerritory(territoryId: string | bigint, userQ
     // await prisma.territories.update({ where: { id: tid }, data: { status: 'PENDING_DELETE' } })
 }
 
-export default { proposeCreateTerritory, proposeDeleteTerritory }
+async function getAllTerritories(teamId?: string | bigint) {
+    const whereClause: any = {
+        status: { in: ['ACTIVE'] } // Only show active on map generally? Or pending too?
+    }
+    if (teamId) {
+        whereClause.team_id = BigInt(teamId)
+        // If specific team queried, maybe show pending too?
+        delete whereClause.status
+    }
+    
+    return await prisma.territories.findMany({
+        where: whereClause
+    })
+}
+
+export default { proposeCreateTerritory, proposeDeleteTerritory, getAllTerritories }

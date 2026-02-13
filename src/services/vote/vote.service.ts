@@ -169,4 +169,22 @@ async function executeVoteFailure(vote: any) {
     }
 }
 
-export default { createVote, castVote }
+async function getVotes(teamId?: string | bigint, status?: VoteStatus) {
+    const where: any = {}
+    if (teamId) where.team_id = BigInt(teamId)
+    if (status) where.status = status
+    
+    const votes = await prisma.votes.findMany({
+        where,
+        include: { vote_records: true }, // To count votes
+        orderBy: { created_at: 'desc' }
+    })
+    
+    return votes.map(v => {
+        const yes = v.vote_records.filter(r => r.decision).length
+        const no = v.vote_records.length - yes
+        return { ...v, yes_votes: yes, no_votes: no }
+    })
+}
+
+export default { createVote, castVote, getVotes }

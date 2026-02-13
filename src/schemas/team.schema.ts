@@ -27,3 +27,24 @@ export const TransferBody = z.object({
 export const SuccessResponse = z.object({
   success: z.boolean(),
 }).openapi('SuccessResponse')
+
+
+export const TeamSummaryResponse = z.object({
+  id: z.string(),
+  name: z.string(),
+  owner_id: z.string(),
+  team_credits: z.number(),
+  members_count: z.number().optional(),
+  territories_count: z.number().optional()
+}).openapi('TeamSummaryResponse')
+
+export const TeamDetailResponse = z.object({
+  id: z.string(),
+  name: z.string(),
+  owner_id: z.string(),
+  team_credits: z.number(),
+  members: z.array(z.object({ qq: z.string(), joined_at: z.date().or(z.string()) })),
+  territories: z.array(z.object({ id: z.string(), name: z.string(), status: z.string(), area: z.number() }))
+}).openapi('TeamDetailResponse')
+
+export const MyTeamsResponse = z.array(TeamSummaryResponse).openapi('MyTeamsResponse')

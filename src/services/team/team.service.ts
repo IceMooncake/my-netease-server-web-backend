@@ -51,6 +51,10 @@ async function joinTeam(teamId: string | number | bigint, userId: string) {
       qq: userId,
       team_id: tid,
     },
+  }).catch((e) => {
+    if (e.code === 'P2003') {
+      throw new Error('Team does not exist')
+    }
   })
 }
 
@@ -129,4 +133,31 @@ async function getTeamMembers(teamId: string | bigint) {
     })
 }
 
-export default { createTeam, joinTeam, leaveTeam, transferOwnership, getTeamMembers }
+async function getUserTeams(userId: string) {
+    return await prisma.teams.findMany({
+        where: {
+            members: {
+                some: { qq: userId }
+            }
+        },
+        include: {
+            _count: {
+                select: { members: true, territories: true }
+            }
+        }
+    })
+}
+
+async function getTeamDetails(teamId: string | number | bigint) {
+    return await prisma.teams.findUnique({
+        where: { id: BigInt(teamId) },
+        include: {
+            members: {
+                include: { user: { select: { nick_name: true, qq: true } } }
+            },
+            territories: true
+        }
+    })
+}
+
+export default { createTeam, joinTeam, leaveTeam, transferOwnership, getTeamMembers, getUserTeams, getTeamDetails }

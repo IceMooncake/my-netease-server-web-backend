@@ -4,7 +4,7 @@ import * as controller from '../controllers/vote.controller.js'
 import { authenticateToken } from '../middlewares/auth.js'
 import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi'
 import { RouteRegistrar } from '../utils/routeRegistrar.js'
-import { CastVoteBody, SuccessResponse } from '../schemas/vote.schema.js'
+import { CastVoteBody, SuccessResponse, VoteQuery, VoteListResponse } from '../schemas/vote.schema.js'
 
 export const registry = new OpenAPIRegistry()
 const router = Router()
@@ -16,7 +16,7 @@ registrar.register(router, {
   method: 'post',
   path: '/cast',
   tags: ['Vote'],
-  summary: 'Cast a vote on a proposal',
+  summary: 'Cast a vote',
   security: [{ bearerAuth: [] }],
   request: {
     body: {
@@ -30,6 +30,24 @@ registrar.register(router, {
     },
   },
   handler: controller.castVote,
+})
+
+registrar.register(router, {
+    method: 'get',
+    path: '/',
+    tags: ['Vote'],
+    summary: 'List votes',
+    security: [{ bearerAuth: [] }],
+    request: {
+        query: VoteQuery
+    },
+    responses: {
+        200: {
+            description: 'List of votes',
+            content: { 'application/json': { schema: VoteListResponse } },
+        },
+    },
+    handler: controller.listVotes,
 })
 
 export default router

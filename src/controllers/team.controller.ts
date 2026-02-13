@@ -6,7 +6,9 @@ import {
     JoinTeamBody, 
     TransferBody,
     CreateTeamResponse,
-    SuccessResponse
+    SuccessResponse,
+    MyTeamsResponse,
+    TeamDetailResponse
 } from '../schemas/team.schema.js'
 
 export async function createTeam(req: Request, res: Response) {
@@ -49,4 +51,41 @@ export async function transferOwnership(req: Request, res: Response) {
         await teamService.transferOwnership(teamId, user.qq, newOwnerId)
         return { success: true }
     }, { response: SuccessResponse })
+}
+
+
+export async function getMyTeams(req: Request, res: Response) {
+    handleAsync(res, async () => {
+        const user = req.user
+        const teams = await teamService.getUserTeams(user.qq)
+        return teams.map(t => ({
+            id: t.id.toString(),
+            name: t.name,
+            owner_id: t.owner_id,
+            team_credits: t.team_credits,
+            members_count: t._count.members,
+            territories_count: t._count.territories
+        }))
+    }, { response: MyTeamsResponse })
+}
+
+export async function getTeamDetails(req: Request, res: Response) {
+    handleAsync(res, async () => {
+        const teamId = req.params.teamId
+        const team = await teamService.getTeamDetails(teamId)
+        if (!team) throw new Error('Team not found')
+        return {
+            id: team.id.toString(),
+            name: team.name,
+            owner_id: team.owner_id,
+            team_credits: team.team_credits,
+            members: team.members.map(m => ({ qq: m.qq, joined_at: m.joined_at! })),
+            territories: team.territories.map(t => ({
+                id: t.id.toString(),
+                name: t.name,
+                status: t.status,
+                area: t.area
+            }))
+        }
+    }, { response: TeamDetailResponse })
 }
