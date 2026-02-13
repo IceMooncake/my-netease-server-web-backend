@@ -5,13 +5,30 @@ import { OpenAPIRegistry, OpenApiGeneratorV3 } from '@asteasolutions/zod-to-open
 import { registry as authRegistry } from '../src/routes/auth.routes.js'
 import { registry as adminRegistry } from '../src/routes/admin.routes.js'
 import { registry as territoriesRegistry } from '../src/routes/territories.routes.js'
+import { registry as teamRegistry } from '../src/routes/team.routes.js'
+import { registry as creditRegistry } from '../src/routes/credit.routes.js'
+import { registry as voteRegistry } from '../src/routes/vote.routes.js'
 
 // -----------------------------
 // 注册 OpenAPI
 // -----------------------------
 
 // 合并所有的 Registry
-const registry = new OpenAPIRegistry([authRegistry, adminRegistry, territoriesRegistry])
+const registry = new OpenAPIRegistry([
+  authRegistry,
+  adminRegistry,
+  territoriesRegistry,
+  teamRegistry,
+  creditRegistry,
+  voteRegistry,
+])
+
+// 注册 Bearer Auth
+registry.registerComponent('securitySchemes', 'bearerAuth', {
+  type: 'http',
+  scheme: 'bearer',
+  bearerFormat: 'JWT',
+})
 
 // -----------------------------
 // 生成 openapi 文档

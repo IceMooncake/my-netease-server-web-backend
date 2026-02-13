@@ -1,78 +1,59 @@
 // src/routes/admin.routes.ts
 import { Router } from 'express'
-import { requireAdmin, authenticateToken } from '../middlewares/auth.js'
-import * as Admin from '../controllers/admin.controller.js'
+import * as controller from '../controllers/admin.controller.js'
+import { authenticateToken, requireAdmin } from '../middlewares/auth.js'
 import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi'
 import { RouteRegistrar } from '../utils/routeRegistrar.js'
-import {
-  ListApplicationsQuery,
-  DecideApplicationBody,
-  DecideApplicationParams,
-  // DecideApplicationResponse, // Controller seems to just return {success: true} in generateOpenApi, check implementation?
+import { 
+    ListTasksQuery, 
+    ListTasksResponse, 
+    ProcessTaskBody, 
+    SuccessResponse 
 } from '../schemas/admin.schema.js'
-import { z } from 'zod'
 
 export const registry = new OpenAPIRegistry()
-const r = Router()
+const router = Router()
 const registrar = new RouteRegistrar(registry, '/admin')
 
-r.use(authenticateToken, requireAdmin)
+router.use(authenticateToken)
+router.use(requireAdmin)
 
-// Note: Global middleware on router is not reflected in OpenAPI 'security' scheme automatically unless we configure it.
-// For now we just register paths.
-
-registrar.register(r, {
+registrar.register(router, {
   method: 'get',
-  path: '/applications',
+  path: '/tasks',
   tags: ['Admin'],
-  summary: 'List territory applications',
+  summary: 'List admin tasks',
+  security: [{ bearerAuth: [] }],
   request: {
-    query: ListApplicationsQuery,
+    query: ListTasksQuery,
   },
   responses: {
     200: {
-      description: 'List of applications',
-      content: {
-        'application/json': {
-          // Using a simple schema as placeholder or the full one if controller matches.
-          // Original generateOpenApi used a simplified inline schema.
-          // Let's use a generic array object for safety or what was there.
-          /* 
-          schema: z.array(
-              z.object({
-                id: z.number(),
-                status: ListApplicationsQuery.shape.status,
-              })
-            ),
-          */
-          // Better to use a basic schema if we aren't sure about the full Response schema matching controller
-          schema: z.array(z.object({ id: z.number(), status: z.string() }).passthrough()),
-        },
-      },
+      description: 'List of tasks',
+      content: { 'application/json': { schema: ListTasksResponse } },
     },
   },
-  handler: Admin.listApplications,
+  handler: controller.listTasks,
 })
 
-registrar.register(r, {
+registrar.register(router, {
   method: 'post',
-  path: '/applications/{id}/decide',
+  path: '/process',
   tags: ['Admin'],
-  summary: 'Approve or reject application',
+  summary: 'Process an admin task',
+  security: [{ bearerAuth: [] }],
   request: {
-    params: DecideApplicationParams,
     body: {
-      content: { 'application/json': { schema: DecideApplicationBody } },
+      content: { 'application/json': { schema: ProcessTaskBody } },
     },
   },
   responses: {
     200: {
-      description: 'OK',
-      content: { 'application/json': { schema: z.object({ success: z.boolean() }) } },
+      description: 'Task processed',
+      content: { 'application/json': { schema: SuccessResponse } },
     },
   },
-  handler: Admin.decideApplication,
+  handler: controller.processTask,
 })
 
-export default r
-export { r as adminRoutes }
+export default router

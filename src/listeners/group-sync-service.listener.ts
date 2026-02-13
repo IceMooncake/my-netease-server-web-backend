@@ -1,5 +1,5 @@
 import prisma from '../database/prisma.js'
-import { napcatService } from '../services/index.js'
+import { napcatService, creditService } from '../services/index.js'
 
 // -----------------工具-----------------
 
@@ -45,17 +45,42 @@ export default function () {
 
   napcat.on('notice.group_decrease', async ctx => {
     console.log(`❌ 成员退出：${ctx.user_id}`)
+    const qq = ctx.user_id.toString()
     await prisma.group_members.update({
-      where: { qq: ctx.user_id.toString() },
+      where: { qq },
       data: { status: 0, updated_at: new Date() },
     })
+    
+    // New: Freeze user
+    try {
+      await prisma.users.update({
+          where: { qq },
+          data: { 
+              status: 'FROZEN', 
+              left_group_at: new Date() 
+          }
+      })
+    } catch(e) {
+      // User might not exist in users table
+    }
   })
 
   // 监听群消息，检查是否有验证码
   napcat.on('message.group.normal', async ctx => {
     if (ctx.group_id !== groupId) return
-    const code = ctx.raw_message.trim()
+
     const qq = ctx.user_id.toString()
+    
+    // 每日签到逻辑
+    try {
+      if (await creditService.checkIn(qq)) {
+         console.log(`✅ QQ ${qq} 每日签到成功`)
+      }
+    } catch (error) {
+       // Ignore errors (user not found etc)
+    }
+
+    const code = ctx.raw_message.trim()
     // 验证成功，标记为已验证
     const access = await verifyCode(qq, code)
     if (access) {

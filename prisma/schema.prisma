@@ -1,3 +1,6 @@
+// This schema reflects the new requirements for Ice Town
+// Teams, Territories (Claims), Credits, Voting, Admin Tasks
+
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -8,91 +11,201 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// --- ENUMS ---
+
+enum UserStatus {
+  ACTIVE
+  FROZEN
+  DELETED
+}
+
+enum AdminTaskType {
+  REVIEW_TERRITORY_CREATE
+  REVIEW_TERRITORY_DELETE
+  REVIEW_TERRITORY_UPDATE
+  CLEANUP_USER
+  RECYCLE_TERRITORY_SIZE // When team shrinks
+}
+
+enum AdminTaskStatus {
+  PENDING
+  DONE
+  IGNORED
+  REJECTED
+}
+
+enum TerritoryType {
+  NO_ENTRY
+  NO_BREAK
+}
+
+enum TerritoryStatus {
+  PENDING_CREATE
+  ACTIVE
+  PENDING_DELETE
+  PENDING_UPDATE
+}
+
+enum VoteType {
+  DISBAND_TEAM
+  CREATE_TERRITORY
+  DELETE_TERRITORY
+  UPDATE_TERRITORY
+  KICK_MEMBER
+}
+
+enum VoteStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+// --- MODELS ---
+
+model users {
+  qq               String         @id @db.VarChar(255)
+  password         String?        @db.VarChar(255)
+  create_at        DateTime?      @default(now()) @db.DateTime(0)
+  nick_name        String?        @db.VarChar(255)
+  personal_credits Int            @default(0)
+  is_admin         Int            @default(0) @db.TinyInt
+  
+  // New fields
+  status            UserStatus     @default(ACTIVE)
+  last_daily_check_in DateTime?    @db.Date
+  left_group_at     DateTime?      @db.DateTime(0)
+
+  // Relations
+  owned_team        teams?         @relation("TeamOwner")
+  team_memberships  team_members[]
+  admin_tasks       admin_tasks[]  @relation("AdminProcessor")
+  feedbacks         feedbacks[]
+  votes_cast        vote_records[]
+  
+  // OAuth Relations
+  oauth_access_tokens       oauth_access_tokens[]
+  oauth_refresh_tokens      oauth_refresh_tokens[]
+  oauth_authorization_codes oauth_authorization_codes[]
+}
+
+model teams {
+  id           BigInt         @id @default(autoincrement())
+  name         String         @db.VarChar(100)
+  owner_id     String         @unique @db.VarChar(255)
+  created_at   DateTime?      @default(now()) @db.Timestamp(0)
+  team_credits Int            @default(0) // Team pool
+  
+  // Relations
+  owner        users          @relation("TeamOwner", fields: [owner_id], references: [qq], onDelete: Cascade)
+  members      team_members[]
+  territories  territories[]
+  votes        votes[]
+}
+
+model team_members {
+  id        BigInt    @id @default(autoincrement())
+  qq        String    @db.VarChar(255)
+  team_id   BigInt
+  joined_at DateTime? @default(now()) @db.Timestamp(0)
+  
+  // Relations
+  user      users     @relation(fields: [qq], references: [qq], onDelete: Cascade)
+  team      teams     @relation(fields: [team_id], references: [id], onDelete: Cascade)
+
+  @@unique([qq, team_id], map: "uq_user_team")
+  @@index([team_id])
+}
+
+model territories {
+  id          BigInt          @id @default(autoincrement())
+  name        String          @db.VarChar(100)
+  team_id     BigInt
+  created_at  DateTime?       @default(now()) @db.Timestamp(0)
+  
+  // Coordinates
+  x1          Int
+  z1          Int
+  x2          Int
+  z2          Int
+  area        Int             // Computed: |x1-x2| * |z1-z2|
+  cost        Int             // Frozen credits
+  
+  type        TerritoryType   @default(NO_ENTRY)
+  status      TerritoryStatus @default(PENDING_CREATE)
+  
+  // Relations
+  team        teams           @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  
+  votes       votes[]         @relation("TerritoryVote")
+}
+
+model votes {
+  id             BigInt      @id @default(autoincrement())
+  team_id        BigInt
+  creator_qq     String
+  type           VoteType
+  status         VoteStatus  @default(PENDING)
+  title          String?     @db.VarChar(255)
+  
+  // Payload (JSON) details
+  payload        Json?
+
+  created_at     DateTime?   @default(now()) @db.Timestamp(0)
+  deadline       DateTime    @db.Timestamp(0)
+  
+  // Linked Territory
+  territory_id   BigInt?
+  
+  // Relations
+  team           teams       @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  territory      territories? @relation("TerritoryVote", fields: [territory_id], references: [id])
+  vote_records   vote_records[]
+}
+
+model vote_records {
+  id        BigInt   @id @default(autoincrement())
+  vote_id   BigInt
+  voter_qq  String
+  decision  Boolean  // true = agree, false = disagree
+  vote_time DateTime @default(now())
+
+  // Relations
+  vote      votes    @relation(fields: [vote_id], references: [id], onDelete: Cascade)
+  user      users    @relation(fields: [voter_qq], references: [qq], onDelete: Cascade)
+
+  @@unique([vote_id, voter_qq])
+}
+
+model admin_tasks {
+  id           BigInt          @id @default(autoincrement())
+  type         AdminTaskType
+  status       AdminTaskStatus @default(PENDING)
+  payload      Json            // Details needed for admin action
+  created_at   DateTime        @default(now())
+  processed_at DateTime?
+  processed_by String?         @db.VarChar(255)
+  
+  // Relations
+  admin        users?          @relation("AdminProcessor", fields: [processed_by], references: [qq])
+}
+
+model feedbacks {
+  id         BigInt    @id @default(autoincrement())
+  user_qq    String    @db.VarChar(255)
+  content    String    @db.Text
+  created_at DateTime  @default(now())
+  status     String    @default("PENDING")
+
+  // Relations
+  user       users     @relation(fields: [user_qq], references: [qq])
+}
+
 model group_members {
   qq         String    @id @db.VarChar(255)
   status     Int       @db.TinyInt
   joined_at  DateTime? @default(now()) @db.DateTime(0)
   updated_at DateTime? @default(now()) @db.DateTime(0)
-}
-
-model proposal_votes {
-  id          BigInt                  @id @default(autoincrement())
-  proposal_id BigInt
-  voter_qq    String                  @db.VarChar(255)
-  decision    proposal_votes_decision
-  created_at  DateTime?               @default(now()) @db.Timestamp(0)
-  proposals   proposals               @relation(fields: [proposal_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "proposal_votes_ibfk_1")
-
-  @@unique([proposal_id, voter_qq], map: "uq_vote")
-}
-
-model proposals {
-  id             BigInt           @id @default(autoincrement())
-  territory_id   BigInt
-  type           proposals_type
-  payload        Json
-  created_by     String           @db.VarChar(255)
-  status         proposals_status @default(pending)
-  required_votes Int
-  created_at     DateTime?        @default(now()) @db.Timestamp(0)
-  proposal_votes proposal_votes[]
-  territories    territories      @relation(fields: [territory_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "proposals_ibfk_1")
-
-  @@index([territory_id], map: "territory_id")
-}
-
-model territories {
-  id                BigInt              @id @default(autoincrement())
-  name              String              @db.VarChar(100)
-  owner_id          String              @unique(map: "owner_id") @db.VarChar(255)
-  created_at        DateTime?           @default(now()) @db.Timestamp(0)
-  type              territories_type    @default(overworld)
-  pool_credits      Int                 @default(0)
-  plots_limit       Int                 @default(3)
-  proposals         proposals[]
-  users             users               @relation(fields: [owner_id], references: [qq], onDelete: Cascade, onUpdate: NoAction, map: "territories_ibfk_1")
-  territory_members territory_members[]
-}
-
-model territory_applications {
-  id               BigInt                        @id @default(autoincrement())
-  applicant_qq     String                        @db.VarChar(255)
-  name             String                        @db.VarChar(100)
-  type             territory_applications_type
-  cost             Int                           @default(0)
-  status           territory_applications_status @default(pending)
-  decision_message String?                       @db.VarChar(255)
-  processed_by     String?                       @db.VarChar(255)
-  created_at       DateTime?                     @default(now()) @db.Timestamp(0)
-  processed_at     DateTime?                     @db.Timestamp(0)
-
-  @@index([applicant_qq], map: "applicant_qq")
-}
-
-model territory_members {
-  id           BigInt                  @id @default(autoincrement())
-  qq           String                  @unique(map: "user_id") @db.VarChar(255)
-  territory_id BigInt
-  role         territory_members_role? @default(member)
-  joined_at    DateTime?               @default(now()) @db.Timestamp(0)
-  users        users                   @relation(fields: [qq], references: [qq], onDelete: Cascade, onUpdate: NoAction, map: "territory_members_ibfk_1")
-  territories  territories             @relation(fields: [territory_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "territory_members_ibfk_2")
-
-  @@index([territory_id], map: "territory_id")
-}
-
-model users {
-  qq                String             @id @db.VarChar(255)
-  password          String?            @db.VarChar(255)
-  create_at         DateTime?          @default(now()) @db.DateTime(0)
-  nick_name         String?            @db.VarChar(255)
-  personal_credits  Int                @default(0)
-  is_admin          Int                @default(0) @db.TinyInt
-  territories       territories?
-  territory_members territory_members?
-  oauth_access_tokens      oauth_access_tokens[]
-  oauth_refresh_tokens     oauth_refresh_tokens[]
-  oauth_authorization_codes oauth_authorization_codes[]
 }
 
 model verification_codes {
@@ -103,6 +216,8 @@ model verification_codes {
   created_at DateTime? @default(now()) @db.DateTime(0)
   password   String?   @db.VarChar(255)
 }
+
+// OAuth Tables (Preserved structure)
 
 model oauth_clients {
   client_id     String    @id @db.VarChar(80)
@@ -164,44 +279,4 @@ model oauth_authorization_codes {
 
   @@index([client_id], map: "oauth_authorization_codes_client_id_fkey")
   @@index([user_qq], map: "oauth_authorization_codes_user_qq_fkey")
-}
-
-enum proposals_type {
-  spend
-  join
-  expel
-}
-
-enum territory_applications_type {
-  overworld
-  nether
-  end
-}
-
-enum territory_members_role {
-  owner
-  member
-}
-
-enum proposal_votes_decision {
-  approve
-  reject
-}
-
-enum territories_type {
-  overworld
-  nether
-  end
-}
-
-enum territory_applications_status {
-  pending
-  approved
-  rejected
-}
-
-enum proposals_status {
-  pending
-  approved
-  rejected
 }

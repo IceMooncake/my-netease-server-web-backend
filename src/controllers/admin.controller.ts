@@ -1,47 +1,21 @@
 import { Request, Response } from 'express'
-import { territoryService } from '../services/index.js'
-import prisma from '../database/prisma.js'
-import {
-  ListApplicationsQuery,
-  DecideApplicationBody,
-  DecideApplicationParams,
-  ListApplicationsResponse,
-  DecideApplicationResponse,
-} from '../schemas/admin.schema.js'
 import { handleAsync } from '../utils/handleAsync.js'
+import { adminService } from '../services/index.js'
+import { ListTasksQuery, ProcessTaskBody, ListTasksResponse, SuccessResponse } from '../schemas/admin.schema.js'
 
-export function listApplications(req: Request, res: Response) {
-  return handleAsync(
-    res,
-    async () => {
-      const query = ListApplicationsQuery.parse(req.query)
-      const list = await prisma.territory_applications.findMany({
-        where: query.status ? { status: query.status } : undefined,
-        orderBy: { id: 'desc' },
-      })
-      const result = list.map(item => ({ ...item, id: item.id.toString() }))
-      return result
-    },
-    { response: ListApplicationsResponse }
-  )
+export async function listTasks(req: Request, res: Response) {
+    handleAsync(res, async () => {
+        const query = ListTasksQuery.parse(req.query)
+        const tasks = await adminService.getTasks(query.status)
+        return tasks.map(t => ({...t, id: t.id.toString()}))
+    }, { response: ListTasksResponse })
 }
 
-export function decideApplication(req: Request, res: Response) {
-  return handleAsync(
-    res,
-    async () => {
-      const admin = req.user
-      const params = DecideApplicationParams.parse(req.params)
-      const body = DecideApplicationBody.parse(req.body)
-      const result = await territoryService.adminDecideCreate(
-        params.id,
-        admin.qq,
-        body.approve,
-        body.message
-      )
-      // 使用 zod 验证返回值类型
-      return result
-    },
-    { response: DecideApplicationResponse }
-  )
+export async function processTask(req: Request, res: Response) {
+    handleAsync(res, async () => {
+         const { taskId, approved, message } = ProcessTaskBody.parse(req.body)
+          const admin = req.user
+         await adminService.processTask(BigInt(taskId), admin.qq, approved, message)
+         return { success: true }
+    }, { response: SuccessResponse })
 }

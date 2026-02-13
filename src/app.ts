@@ -8,7 +8,7 @@ import cors from 'cors'
 import authRoutes from './routes/index.js'
 
 // Importing jobs and listeners
-import { syncGroupMember } from './jobs/index.js'
+import { syncGroupMember, cleanupMembers } from './jobs/index.js'
 import { groupSync } from './listeners/index.js'
 import { napcatService } from './services/index.js'
 
@@ -18,6 +18,7 @@ await napcatService.connect()
 
 // Don't block startup for sync
 syncGroupMember().catch(err => console.error('Group sync failed:', err))
+cleanupMembers()
 groupSync()
 
 // Initialize the Express application
