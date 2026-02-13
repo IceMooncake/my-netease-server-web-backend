@@ -97,7 +97,7 @@ export async function handleRefreshToken(req: Request, res: Response) {
   handleAsync(
     res,
     async () => {
-      const { refresh_token } = req.body
+      const { refresh_token } = req.cookies
       if (!refresh_token) {
         throw new Error('Refresh token required')
       }
