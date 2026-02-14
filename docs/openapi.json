@@ -643,13 +643,13 @@
                     "success": {
                       "type": "boolean"
                     },
-                    "message": {
+                    "code": {
                       "type": "string"
                     }
                   },
                   "required": [
                     "success",
-                    "message"
+                    "code"
                   ]
                 }
               }
@@ -724,56 +724,6 @@
                     "token_type",
                     "expires_in",
                     "refresh_token"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/auth/confirm-register": {
-      "post": {
-        "tags": [
-          "Authentication"
-        ],
-        "summary": "Confirm registration",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "qq": {
-                    "type": "string",
-                    "minLength": 3
-                  }
-                },
-                "required": [
-                  "qq"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "qq": {
-                      "type": "string"
-                    },
-                    "msg": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "qq",
-                    "msg"
                   ]
                 }
               }

@@ -12,7 +12,7 @@ export const RegisterBody = z.object({
 // 注册返回值
 export const RegisterResponse = z.object({
   success: z.boolean(),
-  message: z.string(),
+  code: z.string(),
 })
 
 // 登录请求体
@@ -30,17 +30,6 @@ export const LoginResponse = z.object({
   expires_in: z.number(),
   refresh_token: z.string(),
   scope: z.string().optional(),
-})
-
-// 确认注册请求体
-export const ConfirmRegisterBody = z.object({
-  qq: z.string().min(3),
-})
-
-// 确认注册返回值
-export const ConfirmRegisterResponse = z.object({
-  qq: z.string(),
-  msg: z.string(),
 })
 
 // OAuth2 Authorize Request

@@ -1,10 +1,12 @@
 import path from 'path'
 import { fileURLToPath } from 'url'
+import http from 'http'
 
 // import routers
 import express from 'express'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
+import { Server as SocketIOServer } from 'socket.io'
 import authRoutes from './routes/index.js'
 
 // Importing jobs and listeners
@@ -24,10 +26,24 @@ groupSync()
 // Initialize the Express application
 const app = express()
 
+// Create HTTP server
+const server = http.createServer(app)
+
+// Initialize Socket.IO
+const io = new SocketIOServer(server, {
+  cors: {
+    origin: process.env.NODE_ENV === 'development' ? (process.env.ALLOW_ORIGIN ? process.env.ALLOW_ORIGIN.split(',').map(origin => origin.trim()) : []) : false,
+    credentials: true
+  }
+})
+
+// Make io available globally for services
+global.io = io
+
 // Enable CORS if in development environment
 if (process.env.NODE_ENV === 'development') {
   app.use(cors({
-    origin: process.env.ALLOW_ORIGIN, // Allow all origins in development
+    origin: process.env.ALLOW_ORIGIN ? process.env.ALLOW_ORIGIN.split(',').map(origin => origin.trim()) : [], // Allow all origins in development
     credentials: true
   }))
 }
@@ -43,6 +59,15 @@ app.get('/openapi.json', (_, res) => {
   res.sendFile(path.join(__dirname, '../docs/openapi.json'))
 })
 
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+  console.log('User connected:', socket.id)
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id)
+  })
+})
+
 // app.use(errorHandler);
 
-export default app
+export default server

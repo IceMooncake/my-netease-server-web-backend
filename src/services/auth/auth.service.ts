@@ -41,19 +41,11 @@ const register = async (qq: string, password: string) => {
   if (existingUser) throw new Error('用户已存在')
   // 生成或返回已有验证码
   const code = await otpService.generateCode(qq, password) // username 即 QQ 号
-  // 返回提示信息
+  // 返回验证码
   return {
     success: false,
-    message: `请在群中发送验证码：${code}，5分钟内有效`,
+    code,
   }
-}
-
-async function confirmRegister(qq: string) {
-  const password = await otpService.checkIsVerified(qq)
-  await prisma.users.create({
-    data: { qq, password: password },
-  })
-  return qq
 }
 
 async function login(qq: string, password: string) {
@@ -291,7 +283,6 @@ async function refreshToken(refreshToken: string) {
 
 export default {
   register,
-  confirmRegister,
   login,
   authorize,
   token,

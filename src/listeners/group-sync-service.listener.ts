@@ -3,12 +3,12 @@ import { napcatService, creditService } from '../services/index.js'
 
 // -----------------工具-----------------
 
-const verifyCode = async (qq: string, code: string): Promise<boolean> => {
+const verifyCode = async (qq: string, code: string): Promise<{ success: boolean, password?: string | null }> => {
   // 查询未验证的验证码
   const verificationCode = await prisma.verification_codes.findFirst({
     where: { qq, code, verified: false },
   })
-  if (!verificationCode) return false
+  if (!verificationCode) return { success: false }
   // 检查是否过期
   if (verificationCode.expires_at < new Date()) {
     throw new Error('验证码已过期')
@@ -18,7 +18,7 @@ const verifyCode = async (qq: string, code: string): Promise<boolean> => {
     where: { qq: verificationCode.qq },
     data: { verified: true },
   })
-  return true
+  return { success: true, password: verificationCode.password }
 }
 
 // ---------------监听群事件---------------
@@ -81,10 +81,27 @@ export default function () {
     }
 
     const code = ctx.raw_message.trim()
-    // 验证成功，标记为已验证
-    const access = await verifyCode(qq, code)
-    if (access) {
+    // 验证成功，标记为已验证并创建用户
+    const result = await verifyCode(qq, code)
+    if (result.success && result.password) {
       console.log(`✅ QQ ${qq} 验证码 ${code} 验证通过`)
+      try {
+        // 直接创建用户
+        await prisma.users.create({
+          data: { qq, password: result.password },
+        })
+        console.log(`✅ QQ ${qq} 用户创建成功`)
+        // 通过 WebSocket 推送注册成功事件
+        if (global.io) {
+          global.io.emit('registration_success', { qq, success: true })
+        }
+      } catch (error) {
+        console.error(`❌ QQ ${qq} 用户创建失败:`, error)
+        // 推送失败事件
+        if (global.io) {
+          global.io.emit('registration_success', { qq, success: false, message: '注册失败' })
+        }
+      }
     }
   })
 }

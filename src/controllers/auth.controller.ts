@@ -5,10 +5,8 @@ import { authService } from '../services/index.js'
 import {
   RegisterBody,
   LoginBody,
-  ConfirmRegisterBody,
   RegisterResponse,
   LoginResponse,
-  ConfirmRegisterResponse,
   AuthorizeQuery,
   AuthorizeResponse,
   TokenBody,
@@ -23,18 +21,6 @@ export async function handleRegister(req: Request, res: Response) {
       return await authService.register(qq, password)
     },
     { response: RegisterResponse }
-  )
-}
-
-export async function handleConfirmRegister(req: Request, res: Response) {
-  handleAsync(
-    res,
-    async () => {
-      const { qq } = ConfirmRegisterBody.parse(req.body)
-      await authService.confirmRegister(qq)
-      return { msg: '注册成功', qq }
-    },
-    { response: ConfirmRegisterResponse }
   )
 }
 

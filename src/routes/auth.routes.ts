@@ -10,8 +10,6 @@ import {
   RegisterResponse,
   LoginBody,
   LoginResponse,
-  ConfirmRegisterBody,
-  ConfirmRegisterResponse,
   AuthorizeQuery,
   AuthorizeResponse,
   TokenBody,
@@ -61,25 +59,6 @@ registrar.register(router, {
     },
   },
   handler: controller.handleLogin,
-})
-
-registrar.register(router, {
-  method: 'post',
-  path: '/confirm-register',
-  tags: ['Authentication'],
-  summary: 'Confirm registration',
-  request: {
-    body: {
-      content: { 'application/json': { schema: ConfirmRegisterBody } },
-    },
-  },
-  responses: {
-    200: {
-      description: 'OK',
-      content: { 'application/json': { schema: ConfirmRegisterResponse } },
-    },
-  },
-  handler: controller.handleConfirmRegister,
 })
 
 registrar.register(router, {
