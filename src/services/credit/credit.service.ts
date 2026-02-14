@@ -13,11 +13,11 @@ export async function checkIn(userId: string): Promise<boolean> {
 
   if (!user) return false
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const today = new Date().toISOString().split('T')[0] // 'YYYY-MM-DD'
+  const lastCheck = user.last_daily_check_in ? user.last_daily_check_in.toISOString().split('T')[0] : null
 
-  // If already checked in today (or later), return false
-  if (user.last_daily_check_in && user.last_daily_check_in >= today) {
+  // If already checked in today, return false
+  if (lastCheck === today) {
     return false
   }
 
@@ -25,7 +25,7 @@ export async function checkIn(userId: string): Promise<boolean> {
   await prisma.users.update({
     where: { qq: userId },
     data: {
-      last_daily_check_in: today,
+      last_daily_check_in: new Date(),
       personal_credits: {
         increment: DAILY_CHECK_IN_REWARD,
       },
