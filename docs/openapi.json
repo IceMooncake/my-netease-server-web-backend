@@ -156,169 +156,11 @@
           "approved"
         ]
       },
-      "TerritoryType": {
-        "type": "string",
-        "enum": [
-          "NO_ENTRY",
-          "NO_BREAK"
-        ]
-      },
-      "ProposeCreateResponse": {
+      "TerritoryResponse": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string"
-          },
-          "team_id": {
-            "type": "string"
-          },
-          "area": {
-            "type": "string"
-          },
-          "cost": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "x1": {
-            "type": "number"
-          },
-          "z1": {
-            "type": "number"
-          },
-          "x2": {
-            "type": "number"
-          },
-          "z2": {
-            "type": "number"
-          },
-          "type": {
-            "$ref": "#/components/schemas/TerritoryType"
-          },
-          "status": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "team_id",
-          "area",
-          "cost",
-          "name",
-          "x1",
-          "z1",
-          "x2",
-          "z2",
-          "type",
-          "status"
-        ]
-      },
-      "ProposeCreateBody": {
-        "type": "object",
-        "properties": {
-          "teamId": {
-            "type": "string",
-            "example": "100"
-          },
-          "x1": {
-            "type": "integer"
-          },
-          "z1": {
-            "type": "integer"
-          },
-          "x2": {
-            "type": "integer"
-          },
-          "z2": {
-            "type": "integer"
-          },
-          "type": {
-            "$ref": "#/components/schemas/TerritoryType"
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "required": [
-          "teamId",
-          "x1",
-          "z1",
-          "x2",
-          "z2",
-          "type",
-          "name"
-        ]
-      },
-      "ProposeDeleteBody": {
-        "type": "object",
-        "properties": {
-          "territoryId": {
-            "type": "string",
-            "example": "200"
-          }
-        },
-        "required": [
-          "territoryId"
-        ]
-      },
-      "TerritoryListResponse": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string"
-            },
-            "name": {
-              "type": "string"
-            },
-            "team_id": {
-              "type": "string"
-            },
-            "x1": {
-              "type": "number"
-            },
-            "z1": {
-              "type": "number"
-            },
-            "x2": {
-              "type": "number"
-            },
-            "z2": {
-              "type": "number"
-            },
-            "area": {
-              "type": "number"
-            },
-            "type": {
-              "$ref": "#/components/schemas/TerritoryType"
-            },
-            "status": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "id",
-            "name",
-            "team_id",
-            "x1",
-            "z1",
-            "x2",
-            "z2",
-            "area",
-            "type",
-            "status"
-          ]
-        }
-      },
-      "CreateTeamResponse": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "100"
           },
           "name": {
             "type": "string"
@@ -326,187 +168,155 @@
           "owner_id": {
             "type": "string"
           },
-          "team_credits": {
+          "credits": {
+            "type": "number"
+          },
+          "x1": {
+            "type": "number"
+          },
+          "z1": {
+            "type": "number"
+          },
+          "x2": {
+            "type": "number"
+          },
+          "z2": {
+            "type": "number"
+          },
+          "area": {
+            "type": "number"
+          },
+          "cost": {
+            "type": "number"
+          },
+          "type": {
             "type": "string",
-            "example": "0"
+            "enum": [
+              "NO_ENTRY",
+              "NO_BREAK"
+            ],
+            "example": "NO_ENTRY"
+          },
+          "status": {
+            "type": "string"
           },
           "created_at": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date"
-              },
-              {
-                "type": "string"
-              },
-              {
-                "nullable": true
-              }
-            ]
+            "type": "string"
           }
         },
         "required": [
           "id",
           "name",
           "owner_id",
-          "team_credits",
-          "created_at"
+          "credits",
+          "x1",
+          "z1",
+          "x2",
+          "z2",
+          "area",
+          "cost",
+          "type",
+          "status"
         ]
       },
-      "CreateTeamBody": {
+      "CreateTerritoryRequest": {
         "type": "object",
         "properties": {
           "name": {
             "type": "string",
             "minLength": 1,
-            "example": "My Team"
+            "maxLength": 100
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "NO_ENTRY",
+              "NO_BREAK"
+            ],
+            "example": "NO_ENTRY"
           }
         },
         "required": [
           "name"
         ]
       },
-      "JoinTeamBody": {
-        "type": "object",
-        "properties": {
-          "teamId": {
-            "type": "string",
-            "example": "100",
-            "description": "Team ID to join"
-          }
-        },
-        "required": [
-          "teamId"
-        ]
-      },
-      "TransferBody": {
-        "type": "object",
-        "properties": {
-          "teamId": {
-            "type": "string",
-            "example": "100"
-          },
-          "newOwnerId": {
-            "type": "string",
-            "example": "12345678",
-            "description": "QQ of the new owner"
-          }
-        },
-        "required": [
-          "teamId",
-          "newOwnerId"
-        ]
-      },
-      "TeamSummaryResponse": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "owner_id": {
-            "type": "string"
-          },
-          "team_credits": {
-            "type": "number"
-          },
-          "members_count": {
-            "type": "number"
-          },
-          "territories_count": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "owner_id",
-          "team_credits"
-        ]
-      },
-      "MyTeamsResponse": {
+      "TerritoryListResponse": {
         "type": "array",
         "items": {
-          "$ref": "#/components/schemas/TeamSummaryResponse"
+          "$ref": "#/components/schemas/TerritoryResponse"
         }
       },
-      "TeamDetailResponse": {
+      "SuccessMessageResponse": {
         "type": "object",
         "properties": {
-          "id": {
+          "message": {
             "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "owner_id": {
-            "type": "string"
-          },
-          "team_credits": {
-            "type": "number"
-          },
-          "members": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "qq": {
-                  "type": "string"
-                },
-                "joined_at": {
-                  "anyOf": [
-                    {
-                      "type": "string",
-                      "format": "date"
-                    },
-                    {
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "required": [
-                "qq",
-                "joined_at"
-              ]
-            }
-          },
-          "territories": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "name": {
-                  "type": "string"
-                },
-                "status": {
-                  "type": "string"
-                },
-                "area": {
-                  "type": "number"
-                }
-              },
-              "required": [
-                "id",
-                "name",
-                "status",
-                "area"
-              ]
-            }
           }
         },
         "required": [
-          "id",
-          "name",
-          "owner_id",
-          "team_credits",
-          "members",
-          "territories"
+          "message"
+        ]
+      },
+      "UpdateLocationRequest": {
+        "type": "object",
+        "properties": {
+          "x1": {
+            "type": "integer"
+          },
+          "z1": {
+            "type": "integer"
+          },
+          "x2": {
+            "type": "integer"
+          },
+          "z2": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "x1",
+          "z1",
+          "x2",
+          "z2"
+        ]
+      },
+      "InviteMemberRequest": {
+        "type": "object",
+        "properties": {
+          "qq": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 20
+          }
+        },
+        "required": [
+          "qq"
+        ]
+      },
+      "DonateRequest": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true
+          }
+        },
+        "required": [
+          "amount"
+        ]
+      },
+      "RemoveMemberRequest": {
+        "type": "object",
+        "properties": {
+          "qq": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 20
+          }
+        },
+        "required": [
+          "qq"
         ]
       },
       "ContributeBody": {
@@ -528,76 +338,6 @@
           "teamId",
           "amount"
         ]
-      },
-      "CastVoteBody": {
-        "type": "object",
-        "properties": {
-          "voteId": {
-            "type": "string",
-            "example": "500"
-          },
-          "decision": {
-            "type": "boolean",
-            "description": "true for approve, false for reject"
-          }
-        },
-        "required": [
-          "voteId",
-          "decision"
-        ]
-      },
-      "VoteListResponse": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string"
-            },
-            "team_id": {
-              "type": "string"
-            },
-            "type": {
-              "type": "string"
-            },
-            "status": {
-              "type": "string"
-            },
-            "title": {
-              "type": "string",
-              "nullable": true
-            },
-            "creator_qq": {
-              "type": "string"
-            },
-            "deadline": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "format": "date"
-                },
-                {
-                  "type": "string"
-                }
-              ]
-            },
-            "yes_votes": {
-              "type": "number"
-            },
-            "no_votes": {
-              "type": "number"
-            }
-          },
-          "required": [
-            "id",
-            "team_id",
-            "type",
-            "status",
-            "title",
-            "creator_qq",
-            "deadline"
-          ]
-        }
       }
     },
     "parameters": {}
@@ -1041,93 +781,49 @@
         }
       }
     },
-    "/territories/create": {
-      "post": {
-        "tags": [
-          "Territory"
-        ],
-        "summary": "Propose creating a new territory",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProposeCreateBody"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Proposal created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProposeCreateResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/territories/delete": {
-      "post": {
-        "tags": [
-          "Territory"
-        ],
-        "summary": "Propose deleting an existing territory",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProposeDeleteBody"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Delete proposal created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SuccessResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/territories/": {
+      "post": {
+        "tags": [
+          "Territory"
+        ],
+        "summary": "Create a new territory",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTerritoryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Directory created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerritoryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/territories/mine": {
       "get": {
         "tags": [
           "Territory"
         ],
-        "summary": "List territories",
+        "summary": "List my territories",
         "security": [
           {
             "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "required": false,
-            "name": "teamId",
-            "in": "query"
           }
         ],
         "responses": {
@@ -1144,173 +840,12 @@
         }
       }
     },
-    "/teams/create": {
-      "post": {
+    "/territories/{id}": {
+      "delete": {
         "tags": [
-          "Team"
+          "Territory"
         ],
-        "summary": "Create a new team",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateTeamBody"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Team created successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateTeamResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/teams/join": {
-      "post": {
-        "tags": [
-          "Team"
-        ],
-        "summary": "Join a team",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/JoinTeamBody"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Joined successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SuccessResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/teams/leave": {
-      "post": {
-        "tags": [
-          "Team"
-        ],
-        "summary": "Leave a team",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/JoinTeamBody"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Left successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SuccessResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/teams/transfer": {
-      "post": {
-        "tags": [
-          "Team"
-        ],
-        "summary": "Transfer team ownership",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TransferBody"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Transferred successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SuccessResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/teams/mine": {
-      "get": {
-        "tags": [
-          "Team"
-        ],
-        "summary": "Get teams I belong to",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of teams",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MyTeamsResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/teams/{teamId}": {
-      "get": {
-        "tags": [
-          "Team"
-        ],
-        "summary": "Get team details",
+        "summary": "Request delete territory",
         "security": [
           {
             "bearerAuth": []
@@ -1322,17 +857,286 @@
               "type": "string"
             },
             "required": true,
-            "name": "teamId",
+            "name": "id",
             "in": "path"
           }
         ],
         "responses": {
           "200": {
-            "description": "Team details",
+            "description": "Deletion requested",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TeamDetailResponse"
+                  "$ref": "#/components/schemas/SuccessMessageResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/territories/{id}/location": {
+      "put": {
+        "tags": [
+          "Territory"
+        ],
+        "summary": "Update territory location (Claim/Resize/Move)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLocationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Location updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessageResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/territories/{id}/invite": {
+      "post": {
+        "tags": [
+          "Territory"
+        ],
+        "summary": "Invite a member to territory",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteMemberRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Invitation sent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessageResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/territories/invitations/{id}/accept": {
+      "post": {
+        "tags": [
+          "Territory"
+        ],
+        "summary": "Accept an invitation",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Invitation ID"
+            },
+            "required": true,
+            "description": "Invitation ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invitation accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessageResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/territories/invitations/{id}": {
+      "delete": {
+        "tags": [
+          "Territory"
+        ],
+        "summary": "Revoke or reject an invitation",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Invitation ID"
+            },
+            "required": true,
+            "description": "Invitation ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invitation revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessageResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/territories/{id}/donate": {
+      "post": {
+        "tags": [
+          "Territory"
+        ],
+        "summary": "Donate personal credits to territory",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DonateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Donation successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessageResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/territories/{id}/members": {
+      "delete": {
+        "tags": [
+          "Territory"
+        ],
+        "summary": "Remove member (Kick or Leave)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RemoveMemberRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Member removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessMessageResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "refund": {
+                          "type": "number"
+                        },
+                        "deduction": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "refund",
+                        "deduction"
+                      ]
+                    }
+                  ]
                 }
               }
             }
@@ -1367,89 +1171,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SuccessResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/votes/cast": {
-      "post": {
-        "tags": [
-          "Vote"
-        ],
-        "summary": "Cast a vote",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CastVoteBody"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Vote cast successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SuccessResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/votes/": {
-      "get": {
-        "tags": [
-          "Vote"
-        ],
-        "summary": "List votes",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "required": false,
-            "name": "teamId",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "enum": [
-                "PENDING",
-                "APPROVED",
-                "REJECTED",
-                "EXPIRED"
-              ]
-            },
-            "required": false,
-            "name": "status",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of votes",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VoteListResponse"
                 }
               }
             }

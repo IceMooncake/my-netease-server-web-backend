@@ -13,6 +13,7 @@ export async function handleAsync<T>(
     const parsed = response instanceof ZodType ? response.parse(result) : result
     res.status(200).json(parsed)
   } catch (err: unknown) {
+    console.error('Error in handleAsync:', err)
     if (err instanceof Error) {
       res.status(errorCode).json({ msg: err.message })
     } else {

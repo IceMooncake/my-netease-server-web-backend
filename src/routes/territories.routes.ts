@@ -1,80 +1,227 @@
-// src/routes/territories.routes.ts
+import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi'
 import { Router } from 'express'
+import { z } from 'zod'
 import * as controller from '../controllers/territory.controller.js'
 import { authenticateToken } from '../middlewares/auth.js'
-import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi'
-import { RouteRegistrar } from '../utils/routeRegistrar.js'
-import { 
-    ProposeCreateBody, 
-    ProposeDeleteBody, 
-    ProposeCreateResponse, 
-    SuccessResponse,
-    TerritoryQuery,
-    TerritoryListResponse
+import {
+  CreateTerritorySchema,
+  DonateSchema,
+  InviteMemberSchema,
+  RemoveMemberSchema,
+  SuccessMessageResponse,
+  TerritoryListResponse,
+  TerritoryResponse,
+  UpdateLocationSchema,
 } from '../schemas/territory.schema.js'
+import { RouteRegistrar } from '../utils/routeRegistrar.js'
 
 export const registry = new OpenAPIRegistry()
 const router = Router()
 const registrar = new RouteRegistrar(registry, '/territories')
 
+// All routes require authentication
 router.use(authenticateToken)
 
-registrar.register(router, {
-  method: 'post',
-  path: '/create',
-  tags: ['Territory'],
-  summary: 'Propose creating a new territory',
-  security: [{ bearerAuth: [] }],
-  request: {
-    body: {
-      content: { 'application/json': { schema: ProposeCreateBody } },
-    },
-  },
-  responses: {
-    200: {
-      description: 'Proposal created',
-      content: { 'application/json': { schema: ProposeCreateResponse } },
-    },
-  },
-  handler: controller.proposeCreate,
-})
+// --- Territory CRUD ---
 
 registrar.register(router, {
   method: 'post',
-  path: '/delete',
+  path: '/',
   tags: ['Territory'],
-  summary: 'Propose deleting an existing territory',
+  summary: 'Create a new territory',
   security: [{ bearerAuth: [] }],
   request: {
     body: {
-      content: { 'application/json': { schema: ProposeDeleteBody } },
+      content: { 'application/json': { schema: CreateTerritorySchema } },
     },
   },
   responses: {
     200: {
-      description: 'Delete proposal created',
-      content: { 'application/json': { schema: SuccessResponse } },
+      description: 'Directory created',
+      content: { 'application/json': { schema: TerritoryResponse } },
     },
   },
-  handler: controller.proposeDelete,
+  handler: controller.create,
 })
 
 registrar.register(router, {
   method: 'get',
-  path: '/',
+  path: '/mine',
   tags: ['Territory'],
-  summary: 'List territories',
+  summary: 'List my territories',
   security: [{ bearerAuth: [] }],
-  request: {
-    query: TerritoryQuery
-  },
   responses: {
     200: {
       description: 'List of territories',
       content: { 'application/json': { schema: TerritoryListResponse } },
     },
   },
-  handler: controller.listTerritories,
+  handler: controller.listMyTerritories,
+})
+
+registrar.register(router, {
+  method: 'delete',
+  path: '/{id}',
+  tags: ['Territory'],
+  summary: 'Request delete territory',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.string(),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Deletion requested',
+      content: { 'application/json': { schema: SuccessMessageResponse } },
+    },
+  },
+  handler: controller.requestDelete,
+})
+
+// --- Location & Logic ---
+
+registrar.register(router, {
+  method: 'put',
+  path: '/{id}/location',
+  tags: ['Territory'],
+  summary: 'Update territory location (Claim/Resize/Move)',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.string(),
+    }),
+    body: {
+      content: { 'application/json': { schema: UpdateLocationSchema } },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Location updated',
+      content: { 'application/json': { schema: SuccessMessageResponse } },
+    },
+  },
+  handler: controller.updateLocation,
+})
+
+// --- Invitation System ---
+
+registrar.register(router, {
+  method: 'post',
+  path: '/{id}/invite',
+  tags: ['Territory'],
+  summary: 'Invite a member to territory',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.string(),
+    }),
+    body: {
+      content: { 'application/json': { schema: InviteMemberSchema } },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Invitation sent',
+      content: { 'application/json': { schema: SuccessMessageResponse } },
+    },
+  },
+  handler: controller.invite,
+})
+
+registrar.register(router, {
+  method: 'post',
+  path: '/invitations/{id}/accept',
+  tags: ['Territory'],
+  summary: 'Accept an invitation',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.string().openapi({ description: 'Invitation ID' }),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Invitation accepted',
+      content: { 'application/json': { schema: SuccessMessageResponse } },
+    },
+  },
+  handler: controller.acceptInvite,
+})
+
+registrar.register(router, {
+  method: 'delete',
+  path: '/invitations/{id}',
+  tags: ['Territory'],
+  summary: 'Revoke or reject an invitation',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.string().openapi({ description: 'Invitation ID' }),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Invitation revoked',
+      content: { 'application/json': { schema: SuccessMessageResponse } },
+    },
+  },
+  handler: controller.revokeInvite,
+})
+
+// --- Membership & Economy ---
+
+registrar.register(router, {
+  method: 'post',
+  path: '/{id}/donate',
+  tags: ['Territory'],
+  summary: 'Donate personal credits to territory',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.string(),
+    }),
+    body: {
+      content: { 'application/json': { schema: DonateSchema } },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Donation successful',
+      content: { 'application/json': { schema: SuccessMessageResponse } },
+    },
+  },
+  handler: controller.donate,
+})
+
+registrar.register(router, {
+  method: 'delete',
+  path: '/{id}/members',
+  tags: ['Territory'],
+  summary: 'Remove member (Kick or Leave)',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.string(),
+    }),
+    body: {
+      content: { 'application/json': { schema: RemoveMemberSchema } },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Member removed',
+      content: {
+        'application/json': {
+          schema: SuccessMessageResponse.extend({
+            refund: z.number(),
+            deduction: z.number(),
+          }),
+        },
+      },
+    },
+  },
+  handler: controller.removeMember,
 })
 
 export default router

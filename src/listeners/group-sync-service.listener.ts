@@ -1,9 +1,12 @@
 import prisma from '../database/prisma.js'
-import { napcatService, creditService } from '../services/index.js'
+import { creditService, napcatService } from '../services/index.js'
 
 // -----------------工具-----------------
 
-const verifyCode = async (qq: string, code: string): Promise<{ success: boolean, password?: string | null }> => {
+const verifyCode = async (
+  qq: string,
+  code: string
+): Promise<{ success: boolean; password?: string | null }> => {
   // 查询未验证的验证码
   const verificationCode = await prisma.verification_codes.findFirst({
     where: { qq, code, verified: false },
@@ -41,6 +44,19 @@ export default function () {
         status: 1,
       },
     })
+
+    // New: Unfreeze user if they rejoin
+    try {
+      await prisma.users.update({
+        where: { qq: ctx.user_id.toString() },
+        data: {
+          status: 'ACTIVE',
+          left_group_at: null,
+        },
+      })
+    } catch (e) {
+      // User might not exist in users table, ignore
+    }
   })
 
   napcat.on('notice.group_decrease', async ctx => {
@@ -50,17 +66,17 @@ export default function () {
       where: { qq },
       data: { status: 0, updated_at: new Date() },
     })
-    
+
     // New: Freeze user
     try {
       await prisma.users.update({
-          where: { qq },
-          data: { 
-              status: 'FROZEN', 
-              left_group_at: new Date() 
-          }
+        where: { qq },
+        data: {
+          status: 'FROZEN',
+          left_group_at: new Date(),
+        },
       })
-    } catch(e) {
+    } catch (e) {
       // User might not exist in users table
     }
   })
@@ -70,14 +86,14 @@ export default function () {
     if (ctx.group_id !== groupId) return
 
     const qq = ctx.user_id.toString()
-    
+
     // 每日签到逻辑
     try {
       if (await creditService.checkIn(qq)) {
-         console.log(`✅ QQ ${qq} 每日签到成功`)
+        console.log(`✅ QQ ${qq} 每日签到成功`)
       }
     } catch (error) {
-       // Ignore errors (user not found etc)
+      // Ignore errors (user not found etc)
     }
 
     const code = ctx.raw_message.trim()

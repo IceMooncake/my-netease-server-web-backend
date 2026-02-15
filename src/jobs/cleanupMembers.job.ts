@@ -21,13 +21,13 @@ export default () => {
     
     for (const user of users) {
         // Create Admin Task for cleanup
-        await prisma.admin_tasks.create({
-            data: {
-                type: 'CLEANUP_USER',
-                payload: { userQq: user.qq, reason: 'Left group > 30 days' },
-                status: 'PENDING'
-            }
-        })
+        // await prisma.admin_tasks.create({
+        //     data: {
+        //         type: '',
+        //         payload: { userQq: user.qq, reason: 'Left group > 30 days' },
+        //         status: 'PENDING'
+        //     }
+        // })
         console.log(`Created cleanup task for user ${user.qq}`)
     }
   })

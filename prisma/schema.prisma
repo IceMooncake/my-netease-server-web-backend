@@ -1,5 +1,5 @@
-// This schema reflects the new requirements for Ice Town
-// Teams, Territories (Claims), Credits, Voting, Admin Tasks
+// This schema reflects the simplified requirements:
+// No Teams, No Votes. Only Territories, Territory Members, Invitations.
 
 generator client {
   provider = "prisma-client"
@@ -23,8 +23,6 @@ enum AdminTaskType {
   REVIEW_TERRITORY_CREATE
   REVIEW_TERRITORY_DELETE
   REVIEW_TERRITORY_UPDATE
-  CLEANUP_USER
-  RECYCLE_TERRITORY_SIZE // When team shrinks
 }
 
 enum AdminTaskStatus {
@@ -46,21 +44,6 @@ enum TerritoryStatus {
   PENDING_UPDATE
 }
 
-enum VoteType {
-  DISBAND_TEAM
-  CREATE_TERRITORY
-  DELETE_TERRITORY
-  UPDATE_TERRITORY
-  KICK_MEMBER
-}
-
-enum VoteStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  EXPIRED
-}
-
 // --- MODELS ---
 
 model users {
@@ -71,17 +54,18 @@ model users {
   personal_credits Int            @default(0)
   is_admin         Int            @default(0) @db.TinyInt
   
-  // New fields
   status            UserStatus     @default(ACTIVE)
   last_daily_check_in DateTime?    @db.Date
   left_group_at     DateTime?      @db.DateTime(0)
 
   // Relations
-  owned_team        teams?         @relation("TeamOwner")
-  team_memberships  team_members[]
+  owned_territories territories[]  @relation("TerritoryOwner")
+  memberships       territory_members[]
+  received_invites  invitations[]  @relation("Invitee")
+  sent_invites      invitations[]  @relation("Inviter")
+  
   admin_tasks       admin_tasks[]  @relation("AdminProcessor")
   feedbacks         feedbacks[]
-  votes_cast        vote_records[]
   
   // OAuth Relations
   oauth_access_tokens       oauth_access_tokens[]
@@ -89,39 +73,12 @@ model users {
   oauth_authorization_codes oauth_authorization_codes[]
 }
 
-model teams {
-  id           BigInt         @id @default(autoincrement())
-  name         String         @db.VarChar(100)
-  owner_id     String         @unique @db.VarChar(255)
-  created_at   DateTime?      @default(now()) @db.Timestamp(0)
-  team_credits Int            @default(0) // Team pool
-  
-  // Relations
-  owner        users          @relation("TeamOwner", fields: [owner_id], references: [qq], onDelete: Cascade)
-  members      team_members[]
-  territories  territories[]
-  votes        votes[]
-}
-
-model team_members {
-  id        BigInt    @id @default(autoincrement())
-  qq        String    @db.VarChar(255)
-  team_id   BigInt
-  joined_at DateTime? @default(now()) @db.Timestamp(0)
-  
-  // Relations
-  user      users     @relation(fields: [qq], references: [qq], onDelete: Cascade)
-  team      teams     @relation(fields: [team_id], references: [id], onDelete: Cascade)
-
-  @@unique([qq, team_id], map: "uq_user_team")
-  @@index([team_id])
-}
-
 model territories {
   id          BigInt          @id @default(autoincrement())
   name        String          @db.VarChar(100)
-  team_id     BigInt
+  owner_id    String          @db.VarChar(255)
   created_at  DateTime?       @default(now()) @db.Timestamp(0)
+  credits     Int             @default(0) // Territory pool (donated credits)
   
   // Coordinates
   x1          Int
@@ -129,59 +86,52 @@ model territories {
   x2          Int
   z2          Int
   area        Int             // Computed: |x1-x2| * |z1-z2|
-  cost        Int             // Frozen credits
+  cost        Int             // Frozen/Used credits for current size
   
   type        TerritoryType   @default(NO_ENTRY)
   status      TerritoryStatus @default(PENDING_CREATE)
   
   // Relations
-  team        teams           @relation(fields: [team_id], references: [id], onDelete: Cascade)
-  
-  votes       votes[]         @relation("TerritoryVote")
+  owner       users           @relation("TerritoryOwner", fields: [owner_id], references: [qq])
+  members     territory_members[]
+  invitations invitations[]
 }
 
-model votes {
-  id             BigInt      @id @default(autoincrement())
-  team_id        BigInt
-  creator_qq     String
-  type           VoteType
-  status         VoteStatus  @default(PENDING)
-  title          String?     @db.VarChar(255)
-  
-  // Payload (JSON) details
-  payload        Json?
-
-  created_at     DateTime?   @default(now()) @db.Timestamp(0)
-  deadline       DateTime    @db.Timestamp(0)
-  
-  // Linked Territory
-  territory_id   BigInt?
+model territory_members {
+  id           BigInt    @id @default(autoincrement())
+  qq           String    @db.VarChar(255)
+  territory_id BigInt
+  joined_at    DateTime? @default(now()) @db.Timestamp(0)
+  contribution Int       @default(0) // Amount donated by this user to this territory
   
   // Relations
-  team           teams       @relation(fields: [team_id], references: [id], onDelete: Cascade)
-  territory      territories? @relation("TerritoryVote", fields: [territory_id], references: [id])
-  vote_records   vote_records[]
+  user      users       @relation(fields: [qq], references: [qq], onDelete: Cascade)
+  territory territories @relation(fields: [territory_id], references: [id], onDelete: Cascade)
+
+  @@unique([qq, territory_id], map: "uq_user_territory")
+  @@index([territory_id])
 }
 
-model vote_records {
-  id        BigInt   @id @default(autoincrement())
-  vote_id   BigInt
-  voter_qq  String
-  decision  Boolean  // true = agree, false = disagree
-  vote_time DateTime @default(now())
-
+model invitations {
+  id           BigInt    @id @default(autoincrement())
+  territory_id BigInt
+  inviter_qq   String    @db.VarChar(255)
+  invitee_qq   String    @db.VarChar(255)
+  created_at   DateTime  @default(now()) @db.Timestamp(0)
+  
   // Relations
-  vote      votes    @relation(fields: [vote_id], references: [id], onDelete: Cascade)
-  user      users    @relation(fields: [voter_qq], references: [qq], onDelete: Cascade)
+  territory territories @relation(fields: [territory_id], references: [id], onDelete: Cascade)
+  inviter   users       @relation("Inviter", fields: [inviter_qq], references: [qq], onDelete: Cascade)
+  invitee   users       @relation("Invitee", fields: [invitee_qq], references: [qq], onDelete: Cascade)
 
-  @@unique([vote_id, voter_qq])
+  @@unique([territory_id, invitee_qq], map: "uq_territory_invitee")
 }
 
 model admin_tasks {
   id           BigInt          @id @default(autoincrement())
   type         AdminTaskType
   status       AdminTaskStatus @default(PENDING)
-  payload      Json            // Details needed for admin action
+  payload      Json            // Details needed
   created_at   DateTime        @default(now())
   processed_at DateTime?
   processed_by String?         @db.VarChar(255)
@@ -217,7 +167,7 @@ model verification_codes {
   password   String?   @db.VarChar(255)
 }
 
-// OAuth Tables (Preserved structure)
+// OAuth Tables (Preserved)
 
 model oauth_clients {
   client_id     String    @id @db.VarChar(80)

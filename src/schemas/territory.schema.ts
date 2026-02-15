@@ -1,56 +1,68 @@
-// src/schemas/territory.schema.ts
-import { z } from 'zod'
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi'
+import { z } from 'zod'
+
 extendZodWithOpenApi(z)
 
-export const TerritoryTypeEnum = z.enum(['NO_ENTRY', 'NO_BREAK']).openapi('TerritoryType')
+export const TerritoryTypeEnum = z.enum(['NO_ENTRY', 'NO_BREAK']).openapi({ example: 'NO_ENTRY' })
 
-export const ProposeCreateBody = z.object({
-  teamId: z.string().openapi({ example: '100' }),
-  x1: z.number().int(),
-  z1: z.number().int(),
-  x2: z.number().int(),
-  z2: z.number().int(),
-  type: TerritoryTypeEnum,
-  name: z.string().min(1),
-}).openapi('ProposeCreateBody')
+export const CreateTerritorySchema = z
+  .object({
+    name: z.string().min(1).max(100),
+    type: TerritoryTypeEnum.optional(),
+  })
+  .openapi('CreateTerritoryRequest')
 
-export const ProposeDeleteBody = z.object({
-  territoryId: z.string().openapi({ example: '200' }),
-}).openapi('ProposeDeleteBody')
+export const UpdateLocationSchema = z
+  .object({
+    x1: z.number().int(),
+    z1: z.number().int(),
+    x2: z.number().int(),
+    z2: z.number().int(),
+  })
+  .openapi('UpdateLocationRequest')
 
-export const ProposeCreateResponse = z.object({
-  id: z.string(),
-  team_id: z.string(),
-  area: z.string(),
-  cost: z.string(),
-  name: z.string(),
-  x1: z.number(),
-  z1: z.number(),
-  x2: z.number(),
-  z2: z.number(),
-  type: TerritoryTypeEnum,
-  status: z.string(),
-}).openapi('ProposeCreateResponse')
+export const InviteMemberSchema = z
+  .object({
+    qq: z.string().min(5).max(20),
+  })
+  .openapi('InviteMemberRequest')
 
-export const SuccessResponse = z.object({
-  success: z.boolean(),
-}).openapi('SuccessResponse')
+export const DonateSchema = z
+  .object({
+    amount: z.number().int().positive(),
+  })
+  .openapi('DonateRequest')
 
+export const RemoveMemberSchema = z
+  .object({
+    qq: z.string().min(5).max(20), // Member to remove
+  })
+  .openapi('RemoveMemberRequest')
 
-export const TerritoryQuery = z.object({
-  teamId: z.string().optional()
-}).openapi('TerritoryQuery')
+// Responses
 
-export const TerritoryListResponse = z.array(z.object({
-  id: z.string(),
-  name: z.string(),
-  team_id: z.string(),
-  x1: z.number(),
-  z1: z.number(),
-  x2: z.number(),
-  z2: z.number(),
-  area: z.number(),
-  type: TerritoryTypeEnum,
-  status: z.string()
-})).openapi('TerritoryListResponse')
+export const TerritoryResponse = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    owner_id: z.string(),
+    credits: z.number(),
+    x1: z.number(),
+    z1: z.number(),
+    x2: z.number(),
+    z2: z.number(),
+    area: z.number(),
+    cost: z.number(),
+    type: TerritoryTypeEnum,
+    status: z.string(),
+    created_at: z.string().optional(),
+  })
+  .openapi('TerritoryResponse')
+
+export const TerritoryListResponse = z.array(TerritoryResponse).openapi('TerritoryListResponse')
+
+export const SuccessMessageResponse = z
+  .object({
+    message: z.string(),
+  })
+  .openapi('SuccessMessageResponse')
