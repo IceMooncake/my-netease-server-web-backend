@@ -370,6 +370,63 @@ export async function requestDeleteTerritory(territoryId: bigint, userQq: string
   if (!territory) throw new Error('Territory not found')
   if (territory.owner_id !== userQq) throw new Error('Only owner can delete territory')
 
+  // If territory is only in PENDING_CREATE state (never activated), delete immediately and cancel creation task.
+  if (territory.status === TerritoryStatus.PENDING_CREATE) {
+    await prisma.$transaction(async tx => {
+      // 1. Find and cancel any pending creation tasks for this territory
+      // Note: We search for tasks and check payload manually as JSON filtering varies.
+      // But since we are deleting the territory, we might as well just mark them or delete them.
+      // Or just let them be, but admin service handles missing territory gracefully (we added that).
+      // Let's mark them as IGNORED for clarity if we can find them efficiently.
+
+      const tasks = await tx.admin_tasks.findMany({
+        where: {
+          status: AdminTaskStatus.PENDING,
+          type: AdminTaskType.REVIEW_TERRITORY_CREATE,
+        },
+      })
+
+      const relatedTask = tasks.find((t: any) => t.payload?.territoryId === territoryId.toString())
+
+      if (relatedTask) {
+        await tx.admin_tasks.update({
+          where: { id: relatedTask.id },
+          data: {
+            status: AdminTaskStatus.IGNORED,
+            processed_at: new Date(),
+            processed_by: null,
+          },
+        })
+      }
+
+      // 2. Refund any contributions if any member contributed during pending phase?
+      // "PENDING_CREATE" implies it's being set up.
+      // Members could have joined and donated.
+      // We should probably refund them?
+      // Logic for deletion in admin service refunds. We should replicate or reuse that.
+      // Reuse logic: Refund everyone 100% since it was never active?
+      // Or 70%?
+      // Usually "Cancel Creation" implies full refund because service wasn't provided.
+      // Let's do full refund for safety.
+
+      const members = await tx.territory_members.findMany({ where: { territory_id: territoryId } })
+
+      for (const m of members) {
+        if (m.contribution > 0) {
+          await tx.users.update({
+            where: { qq: m.qq },
+            data: { personal_credits: { increment: m.contribution } },
+          })
+        }
+      }
+
+      // 3. Delete territory
+      await tx.territories.delete({ where: { id: territoryId } })
+    })
+
+    return { message: 'Territory creation cancelled and deleted. Credits refunded.' }
+  }
+
   await prisma.admin_tasks.create({
     data: {
       type: AdminTaskType.REVIEW_TERRITORY_DELETE,
