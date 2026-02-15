@@ -90,9 +90,10 @@ export async function handleRefreshToken(req: Request, res: Response) {
       const tokenData = await authService.refreshToken(refresh_token)
       
       // 更新响应头中的cookies
+      const isProduction = process.env.NODE_ENV === 'production'
       res.setHeader('Set-Cookie', [
-        `access_token=${tokenData.access_token}; HttpOnly; Secure; SameSite=Strict; Max-Age=${tokenData.expires_in}; Path=/api`,
-        `refresh_token=${tokenData.refresh_token}; HttpOnly; Secure; SameSite=Strict; Max-Age=${30 * 24 * 3600}; Path=/api`
+        `access_token=${tokenData.access_token}; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=${isProduction ? 'None' : 'Lax'}; Max-Age=${tokenData.expires_in}; Path=/api`,
+        `refresh_token=${tokenData.refresh_token}; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=${isProduction ? 'None' : 'Lax'}; Max-Age=${30 * 24 * 3600}; Path=/api`
       ])
       
       return tokenData
