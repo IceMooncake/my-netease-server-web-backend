@@ -61,8 +61,20 @@ export const TerritoryResponse = z
 
 export const TerritoryListResponse = z.array(TerritoryResponse).openapi('TerritoryListResponse')
 
+export const InvitationResponse = z.object({
+  id: z.string(),
+  territory_id: z.string(),
+  territory_name: z.string(),
+  inviter_qq: z.string(),
+  invitee_qq: z.string(),
+  created_at: z.string(),
+}).openapi('InvitationResponse')
+
+export const InvitationListResponse = z.array(InvitationResponse).openapi('InvitationListResponse')
+
 export const SuccessMessageResponse = z
   .object({
     message: z.string(),
   })
   .openapi('SuccessMessageResponse')
+

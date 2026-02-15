@@ -6,6 +6,7 @@ import { authenticateToken } from '../middlewares/auth.js'
 import {
   CreateTerritorySchema,
   DonateSchema,
+  InvitationListResponse,
   InviteMemberSchema,
   RemoveMemberSchema,
   SuccessMessageResponse,
@@ -105,6 +106,41 @@ registrar.register(router, {
 })
 
 // --- Invitation System ---
+
+registrar.register(router, {
+  method: 'get',
+  path: '/invitations/mine',
+  tags: ['Territory'],
+  summary: 'List my received invitations',
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'List of invitations',
+      content: { 'application/json': { schema: InvitationListResponse } },
+    },
+  },
+  handler: controller.listMyInvitations,
+})
+
+registrar.register(router, {
+  method: 'get',
+  path: '/{id}/invitations',
+  tags: ['Territory'],
+  summary: 'List invitations for a territory',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.string(),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'List of invitations',
+      content: { 'application/json': { schema: InvitationListResponse } },
+    },
+  },
+  handler: controller.listTerritoryInvitations,
+})
 
 registrar.register(router, {
   method: 'post',

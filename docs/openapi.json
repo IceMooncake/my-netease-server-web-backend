@@ -280,6 +280,43 @@
           "z2"
         ]
       },
+      "InvitationResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "territory_id": {
+            "type": "string"
+          },
+          "territory_name": {
+            "type": "string"
+          },
+          "inviter_qq": {
+            "type": "string"
+          },
+          "invitee_qq": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "territory_id",
+          "territory_name",
+          "inviter_qq",
+          "invitee_qq",
+          "created_at"
+        ]
+      },
+      "InvitationListResponse": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/InvitationResponse"
+        }
+      },
       "InviteMemberRequest": {
         "type": "object",
         "properties": {
@@ -912,6 +949,66 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SuccessMessageResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/territories/invitations/mine": {
+      "get": {
+        "tags": [
+          "Territory"
+        ],
+        "summary": "List my received invitations",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of invitations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitationListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/territories/{id}/invitations": {
+      "get": {
+        "tags": [
+          "Territory"
+        ],
+        "summary": "List invitations for a territory",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of invitations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitationListResponse"
                 }
               }
             }

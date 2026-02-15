@@ -3,7 +3,7 @@ import prisma from '../../database/prisma.js'
 import { AdminTaskStatus, AdminTaskType, TerritoryStatus } from '../../generated/prisma/enums.js'
 
 export const MAX_TERRITORIES_PER_USER = 10
-export const REFUND_PERCENTAGE = 0.7
+export const REFUND_PERCENTAGE = 0.9
 
 // --- Helper Functions ---
 
@@ -309,9 +309,50 @@ export async function revokeInvitation(invitationId: bigint, userQq: string) {
   })
   if (!invite) throw new Error('Invitation not found')
 
-  if (invite.territory.owner_id !== userQq) throw new Error('Only owner can revoke invitations')
+  if (invite.territory.owner_id !== userQq && invite.invitee_qq !== userQq) {
+    throw new Error('Permission denied: You are neither the owner nor the invitee.')
+  }
 
   return await prisma.invitations.delete({ where: { id: invitationId } })
+}
+
+export async function getUserInvitations(userQq: string) {
+  const invites = await prisma.invitations.findMany({
+    where: { invitee_qq: userQq },
+    include: { territory: true },
+    orderBy: { created_at: 'desc' }
+  });
+  
+  return invites.map(i => ({
+    id: i.id.toString(),
+    territory_id: i.territory_id.toString(),
+    territory_name: i.territory.name,
+    inviter_qq: i.inviter_qq,
+    invitee_qq: i.invitee_qq,
+    created_at: i.created_at.toISOString()
+  }));
+}
+
+export async function getTerritoryInvitations(territoryId: bigint, userQq: string) {
+    const territory = await prisma.territories.findUnique({ where: { id: territoryId } });
+    if(!territory) throw new Error("Territory not found");
+    // Only owner (or maybe members?) can see active invitations? Usually only owner/admins.
+    if(territory.owner_id !== userQq) throw new Error("Permission denied");
+
+    const invites = await prisma.invitations.findMany({
+        where: { territory_id: territoryId },
+        include: { territory: true },
+        orderBy: { created_at: 'desc' }
+    });
+    
+    return invites.map(i => ({
+        id: i.id.toString(),
+        territory_id: i.territory_id.toString(),
+        territory_name: i.territory.name,
+        inviter_qq: i.inviter_qq,
+        invitee_qq: i.invitee_qq,
+        created_at: i.created_at.toISOString()
+    }));
 }
 
 // --- Member Management ---
@@ -448,17 +489,22 @@ export async function requestDeleteTerritory(territoryId: bigint, userQq: string
 }
 
 export async function getUserTerritories(userQq: string) {
-  // Find territories where user is owner OR member
-  const memberships = await prisma.territory_members.findMany({
-    where: { qq: userQq },
-    include: { territory: true },
-  })
+  try {
+    // Find territories where user is owner OR member
+    const memberships = await prisma.territory_members.findMany({
+      where: { qq: userQq },
+      include: { territory: true },
+    })
 
-  return memberships.map(m => ({
-    ...m.territory,
-    role: m.territory.owner_id === userQq ? 'OWNER' : 'MEMBER',
-    my_contribution: m.contribution,
-  }))
+    return memberships.map(m => ({
+      ...m.territory,
+      role: m.territory.owner_id === userQq ? 'OWNER' : 'MEMBER',
+      my_contribution: m.contribution,
+    }))
+  } catch (error) {
+    console.error('Error fetching user territories:', error)
+    throw new Error('Failed to fetch territories')
+  }
 }
 
 export default {
@@ -468,6 +514,8 @@ export default {
   inviteMember,
   acceptInvitation,
   revokeInvitation,
+  getUserInvitations,
+  getTerritoryInvitations,
   removeMember,
   requestDeleteTerritory,
   getUserTerritories,
