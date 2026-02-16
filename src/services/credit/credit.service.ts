@@ -5,6 +5,7 @@ const { napcat } = napcatService
 
 export const DAILY_CHECK_IN_REWARD = 10 // Configurable amount (not used anymore, now random)
 const CHECK_IN_NOTIFY_WINDOW_MS = 3000
+const groupId = Number(process.env.NAPCAT_GROUPID)
 
 const pendingCheckInUserIds = new Map<string, number>() // userId -> reward
 let checkInNotifyTimer: NodeJS.Timeout | null = null
@@ -35,6 +36,10 @@ function flushCheckInNotifications() {
       }
     )
   }
+  napcat.send_group_msg({
+    group_id: groupId,
+    message,
+  })
 }
 
 function enqueueCheckInNotification(userId: string, reward: number) {
