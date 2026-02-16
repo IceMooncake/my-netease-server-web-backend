@@ -3,10 +3,10 @@ import napcatService from '../napcat/napcat.service.js'
 
 const { napcat } = napcatService
 
-export const DAILY_CHECK_IN_REWARD = 10 // Configurable amount
+export const DAILY_CHECK_IN_REWARD = 10 // Configurable amount (not used anymore, now random)
 const CHECK_IN_NOTIFY_WINDOW_MS = 3000
 
-const pendingCheckInUserIds = new Set<string>()
+const pendingCheckInUserIds = new Map<string, number>() // userId -> reward
 let checkInNotifyTimer: NodeJS.Timeout | null = null
 
 function flushCheckInNotifications() {
@@ -14,12 +14,12 @@ function flushCheckInNotifications() {
     return
   }
 
-  const userIds = Array.from(pendingCheckInUserIds)
+  const userRewards = Array.from(pendingCheckInUserIds.entries())
   pendingCheckInUserIds.clear()
 
   const message: Parameters<typeof napcat.send_group_msg>[0]['message'] = []
 
-  for (const userId of userIds) {
+  for (const [userId, reward] of userRewards) {
     message.push(
       {
         type: 'at',
@@ -30,27 +30,15 @@ function flushCheckInNotifications() {
       {
         type: 'text',
         data: {
-          text: ' ',
+          text: ` 签到成功，获得${reward}方块额度！`,
         },
       }
     )
   }
-
-  message.push({
-    type: 'text',
-    data: {
-      text: `\n签到成功，获得${DAILY_CHECK_IN_REWARD}方块额度！`,
-    },
-  })
-
-  napcat.send_group_msg({
-    group_id: Number(process.env.NAPCAT_GROUPID),
-    message,
-  })
 }
 
-function enqueueCheckInNotification(userId: string) {
-  pendingCheckInUserIds.add(userId)
+function enqueueCheckInNotification(userId: string, reward: number) {
+  pendingCheckInUserIds.set(userId, reward)
 
   if (checkInNotifyTimer) {
     return
@@ -91,19 +79,22 @@ export async function checkIn(userId: string): Promise<boolean> {
     return false
   }
 
+  // Generate random reward between 6 and 66
+  const reward = Math.floor(Math.random() * (66 - 6 + 1)) + 6
+
   // Update user
   await prisma.users.update({
     where: { qq: userId },
     data: {
       last_daily_check_in: new Date(),
       personal_credits: {
-        increment: DAILY_CHECK_IN_REWARD,
+        increment: reward,
       },
     },
   })
 
-  enqueueCheckInNotification(userId)
+  enqueueCheckInNotification(userId, reward)
   return true
 }
 
-export default { checkIn, DAILY_CHECK_IN_REWARD }
+export default { checkIn }
