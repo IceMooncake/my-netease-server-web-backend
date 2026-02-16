@@ -28,6 +28,19 @@ const verifyCode = async (
 const { napcat } = napcatService
 const groupId = Number(process.env.NAPCAT_GROUPID)
 
+const CUTOFF_2026_03_01 = new Date('2026-03-01T00:00:00+08:00')
+const CUTOFF_2026_02_16 = new Date('2026-02-16T00:00:00+08:00')
+
+function getInitialCredits(joinTime: Date): number {
+  if (joinTime < CUTOFF_2026_02_16) {
+    return 2666
+  }
+  if (joinTime < CUTOFF_2026_03_01) {
+    return 888
+  }
+  return 0
+}
+
 export default function () {
   console.log(`👀 正在监听群 ${groupId} 的成员变动...`)
 
@@ -99,8 +112,19 @@ export default function () {
     if (result.success && result.password && result.nick_name) {
       try {
         // 直接创建用户
+        const userInfo = await napcat.get_group_member_info({
+          group_id: groupId,
+          user_id: ctx.user_id,
+        })
+        const joinTime = userInfo.join_time ? new Date(userInfo.join_time * 1000) : new Date() // Fallback to now if join_time is missing
+        const personalCredits = getInitialCredits(joinTime)
         await prisma.users.create({
-          data: { qq, password: result.password, nick_name: result.nick_name },
+          data: {
+            qq,
+            password: result.password,
+            nick_name: result.nick_name,
+            personal_credits: personalCredits,
+          },
         })
         napcat.send_group_msg({
           group_id: groupId,
