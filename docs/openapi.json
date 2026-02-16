@@ -19,6 +19,30 @@
       }
     },
     "schemas": {
+      "RegisterBody": {
+        "type": "object",
+        "properties": {
+          "qq": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 20
+          },
+          "password": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 100
+          },
+          "nick_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20
+          }
+        },
+        "required": [
+          "qq",
+          "password"
+        ]
+      },
       "UserProfileResponse": {
         "type": "object",
         "properties": {
@@ -37,6 +61,10 @@
           },
           "is_admin": {
             "type": "number"
+          },
+          "next_nickname_update_at": {
+            "type": "string",
+            "nullable": true
           }
         },
         "required": [
@@ -44,7 +72,21 @@
           "nick_name",
           "personal_credits",
           "status",
-          "is_admin"
+          "is_admin",
+          "next_nickname_update_at"
+        ]
+      },
+      "UpdateNicknameBody": {
+        "type": "object",
+        "properties": {
+          "nick_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20
+          }
+        },
+        "required": [
+          "nick_name"
         ]
       },
       "AdminTaskType": {
@@ -399,27 +441,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "qq": {
-                    "type": "string",
-                    "minLength": 3
-                  },
-                  "password": {
-                    "type": "string",
-                    "minLength": 6
-                  },
-                  "nick_name": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 50
-                  }
-                },
-                "required": [
-                  "qq",
-                  "password",
-                  "nick_name"
-                ]
+                "$ref": "#/components/schemas/RegisterBody"
               }
             }
           }
@@ -752,6 +774,44 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UserProfileResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/me/nickname": {
+      "patch": {
+        "tags": [
+          "Authentication",
+          "User"
+        ],
+        "summary": "Update user nickname",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNicknameBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Nickname updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
                 }
               }
             }

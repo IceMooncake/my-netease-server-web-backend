@@ -1,23 +1,25 @@
 // src/routes/auth.routes.ts
+import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi'
 import { Router } from 'express'
+import { z } from 'zod'
 import * as controller from '../controllers/auth.controller.js'
 import * as userController from '../controllers/user.controller.js'
 import { authenticateToken } from '../middlewares/auth.js'
-import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi'
-import { RouteRegistrar } from '../utils/routeRegistrar.js'
 import {
-  RegisterBody,
-  RegisterResponse,
-  LoginBody,
-  LoginResponse,
   AuthorizeQuery,
   AuthorizeResponse,
-  TokenBody,
-  TokenResponse,
+  LoginBody,
+  LoginResponse,
   RefreshTokenBody,
   RefreshTokenResponse,
+  RegisterBody,
+  RegisterResponse,
+  TokenBody,
+  TokenResponse,
+  UpdateNicknameBody,
   UserProfileResponse
 } from '../schemas/auth.schema.js'
+import { RouteRegistrar } from '../utils/routeRegistrar.js'
 
 export const registry = new OpenAPIRegistry()
 const router = Router()
@@ -128,6 +130,25 @@ registrar.register(router, {
     },
   },
   handler: [authenticateToken, userController.getMe] as any,
+})
+
+registrar.register(router, {
+  method: 'patch',
+  path: '/me/nickname',
+  tags: ['Authentication', 'User'],
+  summary: 'Update user nickname',
+  request: {
+    body: {
+      content: { 'application/json': { schema: UpdateNicknameBody } },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Nickname updated',
+      content: { 'application/json': { schema: z.object({ message: z.string() }) } },
+    },
+  },
+  handler: [authenticateToken, userController.updateNickname] as any,
 })
 
 export default router

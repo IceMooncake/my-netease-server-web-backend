@@ -5,10 +5,10 @@ extendZodWithOpenApi(z)
 
 // 注册请求体
 export const RegisterBody = z.object({
-  qq: z.string().min(3, 'qq长度至少3位'),
-  password: z.string().min(6, '密码长度至少6位'),
-  nick_name: z.string().min(1, '昵称不能为空').max(50, '昵称长度不能超过50位'),
-})
+  qq: z.string().min(3).max(20),
+  password: z.string().min(6).max(100),
+  nick_name: z.string().min(1).max(20).optional(),
+}).openapi('RegisterBody')
 
 // 注册返回值
 export const RegisterResponse = z.object({
@@ -74,11 +74,15 @@ export const RefreshTokenBody = z.object({
 // Refresh Token Response (same as TokenResponse)
 export const RefreshTokenResponse = TokenResponse
 
+export const UpdateNicknameBody = z.object({
+  nick_name: z.string().min(1, '昵称不能为空').max(20, '昵称长度不能超过20位'),
+}).openapi('UpdateNicknameBody')
 
 export const UserProfileResponse = z.object({
   qq: z.string(),
   nick_name: z.string().nullable(),
   personal_credits: z.number(),
   status: z.string(),
-  is_admin: z.number()
+  is_admin: z.number(),
+  next_nickname_update_at: z.string().nullable()
 }).openapi('UserProfileResponse')

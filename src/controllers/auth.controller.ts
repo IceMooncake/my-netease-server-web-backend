@@ -18,7 +18,7 @@ export async function handleRegister(req: Request, res: Response) {
     res,
     async () => {
       const { qq, password, nick_name } = RegisterBody.parse(req.body)
-      return await authService.register(qq, password, nick_name)
+      return await authService.register(qq, password, nick_name || `用户${qq}`)
     },
     { response: RegisterResponse }
   )
