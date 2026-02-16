@@ -2,7 +2,7 @@ import prisma from '../../database/prisma.js'
 import { hashPassword } from '../../utils/hash.js'
 
 // 创建或更新验证码
-async function createVerificationCode(qq: string, password: string): Promise<string> {
+async function createVerificationCode(qq: string, password: string, nick_name: string): Promise<string> {
   // 查找现有验证码
   const existingCode = await prisma.verification_codes.findFirst({
     where: { qq },
@@ -29,6 +29,7 @@ async function createVerificationCode(qq: string, password: string): Promise<str
         code,
         expires_at: expiresAt,
         password: hashedPassword,
+        nick_name,
         verified: false,
       },
     })
@@ -41,8 +42,8 @@ async function createVerificationCode(qq: string, password: string): Promise<str
 }
 
 // 生成验证码并保存到数据库
-async function generateCode(qq: string, password: string) {
-  return await createVerificationCode(qq.toString(), password)
+async function generateCode(qq: string, password: string, nick_name: string) {
+  return await createVerificationCode(qq.toString(), password, nick_name)
 }
 
 // 检查验证码是否已验证
@@ -57,7 +58,7 @@ async function checkIsVerified(qq: string) {
   await prisma.verification_codes.deleteMany({
     where: { qq },
   }) // 验证成功删除验证码记录
-  return row.password // 返回已验证状态
+  return { password: row.password, nick_name: row.nick_name } // 返回已验证状态和昵称
 }
 
 export default { generateCode, checkIsVerified }

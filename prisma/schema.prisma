@@ -166,6 +166,7 @@ model verification_codes {
   verified   Boolean?  @default(false)
   created_at DateTime? @default(now()) @db.DateTime(0)
   password   String?   @db.VarChar(255)
+  nick_name  String?   @db.VarChar(50)
 }
 
 // OAuth Tables (Preserved)

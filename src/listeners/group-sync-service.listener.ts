@@ -1,12 +1,12 @@
-import prisma from '../database/prisma.js'
-import { creditService, napcatService } from '../services/index.js'
+import prisma from '../database/prisma.js';
+import { creditService, napcatService } from '../services/index.js';
 
 // -----------------工具-----------------
 
 const verifyCode = async (
   qq: string,
   code: string
-): Promise<{ success: boolean; password?: string | null }> => {
+): Promise<{ success: boolean; password?: string | null; nick_name?: string | null }> => {
   // 查询未验证的验证码
   const verificationCode = await prisma.verification_codes.findFirst({
     where: { qq, code, verified: false },
@@ -21,7 +21,7 @@ const verifyCode = async (
     where: { qq: verificationCode.qq },
     data: { verified: true },
   })
-  return { success: true, password: verificationCode.password }
+  return { success: true, password: verificationCode.password, nick_name: verificationCode.nick_name }
 }
 
 // ---------------监听群事件---------------
@@ -90,23 +90,35 @@ export default function () {
     // 每日签到逻辑
     try {
       if (await creditService.checkIn(qq)) {
-        console.log(`✅ QQ ${qq} 每日签到成功`)
       }
-    } catch (error) {
-      // Ignore errors (user not found etc)
-    }
+    } catch {}
 
     const code = ctx.raw_message.trim()
     // 验证成功，标记为已验证并创建用户
     const result = await verifyCode(qq, code)
-    if (result.success && result.password) {
-      console.log(`✅ QQ ${qq} 验证码 ${code} 验证通过`)
+    if (result.success && result.password && result.nick_name) {
       try {
         // 直接创建用户
         await prisma.users.create({
-          data: { qq, password: result.password },
+          data: { qq, password: result.password, nick_name: result.nick_name },
         })
-        console.log(`✅ QQ ${qq} 用户创建成功`)
+        napcat.send_group_msg({
+          group_id: groupId,
+          message: [
+            {
+              type: 'at',
+              data: {
+                qq,
+              },
+            },
+            {
+              type: 'text',
+              data: {
+                text: ' 成功创建账号！快去登录吧！OvO',
+              },
+            },
+          ],
+        })
         // 通过 WebSocket 推送注册成功事件
         if (global.io) {
           global.io.emit('registration_success', { qq, success: true })

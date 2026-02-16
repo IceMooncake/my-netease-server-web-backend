@@ -408,11 +408,17 @@
                   "password": {
                     "type": "string",
                     "minLength": 6
+                  },
+                  "nick_name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 50
                   }
                 },
                 "required": [
                   "qq",
-                  "password"
+                  "password",
+                  "nick_name"
                 ]
               }
             }

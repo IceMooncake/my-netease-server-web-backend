@@ -28,7 +28,7 @@ const ensureOAuthClient = async () => {
   }
 }
 
-const register = async (qq: string, password: string) => {
+const register = async (qq: string, password: string, nick_name: string) => {
   // 检查用户是否在指定的群组中
   const isInGroup = await prisma.group_members.findUnique({
     where: { qq },
@@ -40,7 +40,7 @@ const register = async (qq: string, password: string) => {
   })
   if (existingUser) throw new Error('用户已存在')
   // 生成或返回已有验证码
-  const code = await otpService.generateCode(qq, password) // username 即 QQ 号
+  const code = await otpService.generateCode(qq, password, nick_name) // username 即 QQ 号
   // 返回验证码
   return {
     success: false,
