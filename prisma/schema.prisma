@@ -66,6 +66,7 @@ model users {
   
   admin_tasks       admin_tasks[]  @relation("AdminProcessor")
   feedbacks         feedbacks[]
+  notifications     notifications[]
   
   // OAuth Relations
   oauth_access_tokens       oauth_access_tokens[]
@@ -230,3 +231,15 @@ model oauth_authorization_codes {
   @@index([client_id], map: "oauth_authorization_codes_client_id_fkey")
   @@index([user_qq], map: "oauth_authorization_codes_user_qq_fkey")
 }
+
+model notifications {
+  id          BigInt   @id @default(autoincrement())
+  user_qq     String   @db.VarChar(255)
+  content     String   @db.Text
+  is_read     Boolean  @default(false)
+  created_at  DateTime @default(now())
+  
+  // Relations
+  user        users    @relation(fields: [user_qq], references: [qq], onDelete: Cascade)
+}
+

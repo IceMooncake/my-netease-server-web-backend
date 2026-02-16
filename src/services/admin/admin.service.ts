@@ -1,5 +1,6 @@
 import prisma from '../../database/prisma.js'
 import { AdminTaskStatus, AdminTaskType, TerritoryStatus } from '../../generated/prisma/enums.js'
+import notificationService from '../notification/notification.service.js'
 import { REFUND_PERCENTAGE } from '../territory/territory.service.js'
 
 async function getTasks(status?: AdminTaskStatus) {
@@ -34,12 +35,20 @@ async function processTask(taskId: bigint, adminQq: string, approved: boolean, m
     return
   }
 
+  const reason = message || 'No reason provided.'
+
   if (task.type === AdminTaskType.REVIEW_TERRITORY_CREATE) {
     if (approved) {
       await prisma.territories.update({
         where: { id: tid },
         data: { status: TerritoryStatus.ACTIVE },
       })
+      if (territory) {
+        await notificationService.createNotification(
+          territory.owner_id,
+          `Your territory "${territory.name}" has been approved and is now active.`
+        )
+      }
     } else {
       // Rejected creation (initial claim).
       // Revert cost to pool. Reset Coords to 0.
@@ -58,6 +67,10 @@ async function processTask(taskId: bigint, adminQq: string, approved: boolean, m
             z2: 0,
           },
         })
+        await notificationService.createNotification(
+          territory.owner_id,
+          `Your territory creation request for "${territory.name}" was rejected. Reason: ${reason}`
+        )
       }
     }
   } else if (task.type === AdminTaskType.REVIEW_TERRITORY_UPDATE) {
@@ -66,6 +79,12 @@ async function processTask(taskId: bigint, adminQq: string, approved: boolean, m
         where: { id: tid },
         data: { status: TerritoryStatus.ACTIVE },
       })
+      if (territory) {
+        await notificationService.createNotification(
+          territory.owner_id,
+          `Your territory expansion for "${territory.name}" has been approved.`
+        )
+      }
     } else {
       // Revert update aka "Rollback".
       if (territory) {
@@ -73,17 +92,6 @@ async function processTask(taskId: bigint, adminQq: string, approved: boolean, m
         const oldArea =
           Math.abs(oldCoords.x1 - oldCoords.x2) * Math.abs(oldCoords.z1 - oldCoords.z2)
         const oldCost = oldArea
-
-        // Logic:
-        // DB State: Cost = NewCost. Credits = Pre - (New - Old).
-        // Target: Cost = OldCost. Credits = Pre.
-        // Diff needed: Pre - DB_Credits = New - Old.
-        // So we add (New - Old) to DB_Credits to get Pre.
-        // Wait.
-        // Target Credits = DB_Credits + (NewCost - OldCost).
-        // Example: Old=10, New=20. DB_Credits reduced by 10. We add 10 back.
-        // NewCost (20) - OldCost (10) = 10. Correct.
-
         const correction = territory.cost - oldCost
 
         await prisma.territories.update({
@@ -99,11 +107,21 @@ async function processTask(taskId: bigint, adminQq: string, approved: boolean, m
             credits: { increment: correction },
           },
         })
+        await notificationService.createNotification(
+          territory.owner_id,
+          `Your territory update request for "${territory.name}" was rejected. Reason: ${reason}`
+        )
       }
     }
   } else if (task.type === AdminTaskType.REVIEW_TERRITORY_DELETE) {
     if (approved) {
       if (territory) {
+        // Notify owner before deletion (since owner defaults to members too? Wait owner is in members?)
+        await notificationService.createNotification(
+          territory.owner_id,
+          `Your territory "${territory.name}" has been deleted as requested.`
+        )
+
         // Refund members (70% of contribution)
         const members = await prisma.territory_members.findMany({ where: { territory_id: tid } })
         const updates = members.map(m => {
@@ -124,6 +142,10 @@ async function processTask(taskId: bigint, adminQq: string, approved: boolean, m
           where: { id: tid },
           data: { status: TerritoryStatus.ACTIVE },
         })
+        await notificationService.createNotification(
+          territory.owner_id,
+          `Your request to delete territory "${territory.name}" was rejected. Reason: ${reason}`
+        )
       }
     }
   }

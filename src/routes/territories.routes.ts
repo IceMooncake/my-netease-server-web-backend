@@ -27,10 +27,9 @@ router.use(authenticateToken)
 
 registrar.register(router, {
   method: 'post',
-  path: '/',
+  path: '',
   tags: ['Territory'],
   summary: 'Create a new territory',
-  security: [{ bearerAuth: [] }],
   request: {
     body: {
       content: { 'application/json': { schema: CreateTerritorySchema } },
@@ -50,7 +49,6 @@ registrar.register(router, {
   path: '/mine',
   tags: ['Territory'],
   summary: 'List my territories',
-  security: [{ bearerAuth: [] }],
   responses: {
     200: {
       description: 'List of territories',
@@ -65,7 +63,6 @@ registrar.register(router, {
   path: '/{id}',
   tags: ['Territory'],
   summary: 'Request delete territory',
-  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({
       id: z.string(),
@@ -87,7 +84,6 @@ registrar.register(router, {
   path: '/{id}/location',
   tags: ['Territory'],
   summary: 'Update territory location (Claim/Resize/Move)',
-  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({
       id: z.string(),
@@ -112,7 +108,6 @@ registrar.register(router, {
   path: '/invitations/mine',
   tags: ['Territory'],
   summary: 'List my received invitations',
-  security: [{ bearerAuth: [] }],
   responses: {
     200: {
       description: 'List of invitations',
@@ -127,7 +122,6 @@ registrar.register(router, {
   path: '/{id}/invitations',
   tags: ['Territory'],
   summary: 'List invitations for a territory',
-  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({
       id: z.string(),
@@ -147,7 +141,6 @@ registrar.register(router, {
   path: '/{id}/invite',
   tags: ['Territory'],
   summary: 'Invite a member to territory',
-  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({
       id: z.string(),
@@ -170,7 +163,6 @@ registrar.register(router, {
   path: '/invitations/{id}/accept',
   tags: ['Territory'],
   summary: 'Accept an invitation',
-  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({
       id: z.string().openapi({ description: 'Invitation ID' }),
@@ -190,7 +182,6 @@ registrar.register(router, {
   path: '/invitations/{id}',
   tags: ['Territory'],
   summary: 'Revoke or reject an invitation',
-  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({
       id: z.string().openapi({ description: 'Invitation ID' }),
@@ -212,7 +203,6 @@ registrar.register(router, {
   path: '/{id}/donate',
   tags: ['Territory'],
   summary: 'Donate personal credits to territory',
-  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({
       id: z.string(),
@@ -235,7 +225,6 @@ registrar.register(router, {
   path: '/{id}/members',
   tags: ['Territory'],
   summary: 'Remove member (Kick or Leave)',
-  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({
       id: z.string(),

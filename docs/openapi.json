@@ -356,25 +356,34 @@
           "qq"
         ]
       },
-      "ContributeBody": {
+      "NotificationResponse": {
         "type": "object",
         "properties": {
-          "teamId": {
-            "type": "string",
-            "example": "100"
+          "id": {
+            "type": "string"
           },
-          "amount": {
-            "type": "integer",
-            "minimum": 0,
-            "exclusiveMinimum": true,
-            "example": 10,
-            "description": "Amount of credits to contribute"
+          "content": {
+            "type": "string"
+          },
+          "is_read": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string"
           }
         },
         "required": [
-          "teamId",
-          "amount"
+          "id",
+          "content",
+          "is_read",
+          "created_at"
         ]
+      },
+      "NotificationListResponse": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/NotificationResponse"
+        }
       }
     },
     "parameters": {}
@@ -730,11 +739,6 @@
           "User"
         ],
         "summary": "Get current user profile",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "responses": {
           "200": {
             "description": "User profile",
@@ -755,11 +759,6 @@
           "Admin"
         ],
         "summary": "List admin tasks",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "parameters": [
           {
             "schema": {
@@ -790,11 +789,6 @@
           "Admin"
         ],
         "summary": "Process an admin task",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -818,17 +812,12 @@
         }
       }
     },
-    "/territories/": {
+    "/territories": {
       "post": {
         "tags": [
           "Territory"
         ],
         "summary": "Create a new territory",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -858,11 +847,6 @@
           "Territory"
         ],
         "summary": "List my territories",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "responses": {
           "200": {
             "description": "List of territories",
@@ -883,11 +867,6 @@
           "Territory"
         ],
         "summary": "Request delete territory",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "parameters": [
           {
             "schema": {
@@ -918,11 +897,6 @@
           "Territory"
         ],
         "summary": "Update territory location (Claim/Resize/Move)",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "parameters": [
           {
             "schema": {
@@ -962,11 +936,6 @@
           "Territory"
         ],
         "summary": "List my received invitations",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "responses": {
           "200": {
             "description": "List of invitations",
@@ -987,11 +956,6 @@
           "Territory"
         ],
         "summary": "List invitations for a territory",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "parameters": [
           {
             "schema": {
@@ -1022,11 +986,6 @@
           "Territory"
         ],
         "summary": "Invite a member to territory",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "parameters": [
           {
             "schema": {
@@ -1066,11 +1025,6 @@
           "Territory"
         ],
         "summary": "Accept an invitation",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "parameters": [
           {
             "schema": {
@@ -1103,11 +1057,6 @@
           "Territory"
         ],
         "summary": "Revoke or reject an invitation",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "parameters": [
           {
             "schema": {
@@ -1140,11 +1089,6 @@
           "Territory"
         ],
         "summary": "Donate personal credits to territory",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "parameters": [
           {
             "schema": {
@@ -1184,11 +1128,6 @@
           "Territory"
         ],
         "summary": "Remove member (Kick or Leave)",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "parameters": [
           {
             "schema": {
@@ -1241,33 +1180,59 @@
         }
       }
     },
-    "/credits/contribute": {
-      "post": {
+    "/notifications": {
+      "get": {
         "tags": [
-          "Credit"
+          "Notification"
         ],
-        "summary": "Contribute personal credits to team",
+        "summary": "List unread notifications",
         "security": [
           {
             "bearerAuth": []
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ContributeBody"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
-            "description": "Contribution successful",
+            "description": "List of unread notifications",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SuccessResponse"
+                  "$ref": "#/components/schemas/NotificationListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notifications/{id}/read": {
+      "put": {
+        "tags": [
+          "Notification"
+        ],
+        "summary": "Mark notification as read",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notification marked as read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessageResponse"
                 }
               }
             }

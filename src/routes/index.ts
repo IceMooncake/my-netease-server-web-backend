@@ -1,15 +1,14 @@
 import { Router } from 'express'
-import territories from './territories.routes.js'
 import admin from './admin.routes.js'
 import auth from './auth.routes.js'
-import credits from './credit.routes.js'
+import notifications from './notification.routes.js'
+import territories from './territories.routes.js'
 
 const router = Router()
 
 router.use('/auth', auth)
 router.use('/territories', territories)
 router.use('/admin', admin)
-router.use('/credits', credits)
+router.use('/notifications', notifications)
 
 export default router
-

@@ -23,7 +23,6 @@ registrar.register(router, {
   path: '/tasks',
   tags: ['Admin'],
   summary: 'List admin tasks',
-  security: [{ bearerAuth: [] }],
   request: {
     query: ListTasksQuery,
   },
@@ -41,7 +40,6 @@ registrar.register(router, {
   path: '/process',
   tags: ['Admin'],
   summary: 'Process an admin task',
-  security: [{ bearerAuth: [] }],
   request: {
     body: {
       content: { 'application/json': { schema: ProcessTaskBody } },

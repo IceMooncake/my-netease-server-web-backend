@@ -1,11 +1,11 @@
+import { OpenAPIRegistry, OpenApiGeneratorV3 } from '@asteasolutions/zod-to-openapi'
 import 'dotenv/config'
 import fs from 'fs'
-import { OpenAPIRegistry, OpenApiGeneratorV3 } from '@asteasolutions/zod-to-openapi'
 
-import { registry as authRegistry } from '../src/routes/auth.routes.js'
 import { registry as adminRegistry } from '../src/routes/admin.routes.js'
+import { registry as authRegistry } from '../src/routes/auth.routes.js'
+import { registry as notificationRegistry } from '../src/routes/notification.routes.js'
 import { registry as territoriesRegistry } from '../src/routes/territories.routes.js'
-import { registry as creditRegistry } from '../src/routes/credit.routes.js'
 
 // -----------------------------
 // 注册 OpenAPI
@@ -16,7 +16,7 @@ const registry = new OpenAPIRegistry([
   authRegistry,
   adminRegistry,
   territoriesRegistry,
-  creditRegistry,
+  notificationRegistry,
 ])
 
 // 注册 Bearer Auth

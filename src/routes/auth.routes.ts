@@ -121,7 +121,6 @@ registrar.register(router, {
   path: '/me',
   tags: ['Authentication', 'User'],
   summary: 'Get current user profile',
-  security: [{ bearerAuth: [] }],
   responses: {
     200: {
       description: 'User profile',

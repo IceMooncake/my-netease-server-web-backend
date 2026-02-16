@@ -106,44 +106,4 @@ export async function checkIn(userId: string): Promise<boolean> {
   return true
 }
 
-/**
- * Contribute personal credits to a team.
- */
-export async function contributeToTeam(userId: string, teamId: number | bigint, amount: number) {
-  if (amount <= 0) throw new Error('Amount must be positive')
-
-  // Transaction to ensure atomicity
-  return await prisma.$transaction(async tx => {
-    const user = await tx.users.findUnique({
-      where: { qq: userId },
-    })
-
-    if (!user || user.personal_credits < amount) {
-      throw new Error('Insufficient personal credits')
-    }
-
-    // Deduct from user
-    await tx.users.update({
-      where: { qq: userId },
-      data: {
-        personal_credits: {
-          decrement: amount,
-        },
-      },
-    })
-
-    // Add to team
-    await tx.teams.update({
-      where: { id: teamId },
-      data: {
-        team_credits: {
-          increment: amount,
-        },
-      },
-    })
-
-    return true
-  })
-}
-
-export default { checkIn, contributeToTeam, DAILY_CHECK_IN_REWARD }
+export default { checkIn, DAILY_CHECK_IN_REWARD }
