@@ -17,8 +17,8 @@ async function markAsRead(notificationId: bigint, userQq: string) {
     where: { id: notificationId },
   })
 
-  if (!notification) throw new Error('Notification not found')
-  if (notification.user_qq !== userQq) throw new Error('Not your notification')
+  if (!notification) throw new Error('通知未找到')
+  if (notification.user_qq !== userQq) throw new Error('这不是你的通知')
 
   return await prisma.notifications.update({
     where: { id: notificationId },

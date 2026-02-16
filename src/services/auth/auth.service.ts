@@ -1,8 +1,8 @@
-import jwt from 'jsonwebtoken'
 import crypto from 'crypto'
+import jwt from 'jsonwebtoken'
+import prisma from '../../database/prisma.js'
 import { comparePassword } from '../../utils/hash.js'
 import otpService from '../sms/sms.service.js'
-import prisma from '../../database/prisma.js'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'default_secret'
 
@@ -63,7 +63,7 @@ async function login(qq: string, password: string) {
   const accessToken = jwt.sign(
     {
       qq: user.qq,
-      type: 'access'
+      type: 'access',
     },
     JWT_SECRET,
     { expiresIn: '1h' }
@@ -79,7 +79,7 @@ async function login(qq: string, password: string) {
       client_id: 'ice_town_web', // 默认客户端ID
       user_qq: user.qq,
       expires_at: new Date(Date.now() + 3600 * 1000), // 1小时
-      scope: 'read write'
+      scope: 'read write',
     },
   })
 
@@ -90,7 +90,7 @@ async function login(qq: string, password: string) {
       client_id: 'ice_town_web',
       user_qq: user.qq,
       expires_at: new Date(Date.now() + 30 * 24 * 3600 * 1000), // 30天
-      scope: 'read write'
+      scope: 'read write',
     },
   })
 
@@ -99,7 +99,7 @@ async function login(qq: string, password: string) {
     token_type: 'Bearer',
     expires_in: 3600,
     refresh_token: refreshToken,
-    scope: 'read write'
+    scope: 'read write',
   }
 }
 
@@ -111,7 +111,7 @@ async function authorize(
   state?: string
 ) {
   if (responseType !== 'code') {
-    throw new Error('Unsupported response_type')
+    throw new Error('不支持的响应类型')
   }
 
   const client = await prisma.oauth_clients.findUnique({
@@ -119,7 +119,7 @@ async function authorize(
   })
 
   if (!client) {
-    throw new Error('Invalid client_id')
+    throw new Error('无效的客户端ID')
   }
 
   // Generate code
@@ -147,7 +147,7 @@ async function token(
   clientSecret?: string
 ) {
   if (grantType !== 'authorization_code') {
-    throw new Error('Unsupported grant_type')
+    throw new Error('不支持的授权类型')
   }
 
   const authCode = await prisma.oauth_authorization_codes.findUnique({
@@ -156,15 +156,15 @@ async function token(
   })
 
   if (!authCode) {
-    throw new Error('Invalid authorization code')
+    throw new Error('无效的授权码')
   }
 
   if (authCode.expires_at && authCode.expires_at < new Date()) {
-    throw new Error('Authorization code expired')
+    throw new Error('授权码已过期')
   }
 
   if (authCode.client_id !== clientId) {
-    throw new Error('Invalid client_id')
+    throw new Error('无效的客户端ID')
   }
 
   // Generate access token (JWT)
@@ -221,15 +221,15 @@ async function refreshToken(refreshToken: string) {
   // 查找refresh token
   const refreshTokenRecord = await prisma.oauth_refresh_tokens.findUnique({
     where: { refresh_token: refreshToken },
-    include: { user: true }
+    include: { user: true },
   })
 
   if (!refreshTokenRecord) {
-    throw new Error('Invalid refresh token')
+    throw new Error('无效的刷新令牌')
   }
 
   if (refreshTokenRecord.expires_at && refreshTokenRecord.expires_at < new Date()) {
-    throw new Error('Refresh token expired')
+    throw new Error('刷新令牌已过期')
   }
 
   const user = refreshTokenRecord.user
@@ -238,7 +238,7 @@ async function refreshToken(refreshToken: string) {
   const newAccessToken = jwt.sign(
     {
       qq: user.qq,
-      type: 'access'
+      type: 'access',
     },
     JWT_SECRET,
     { expiresIn: '1h' }
@@ -246,7 +246,7 @@ async function refreshToken(refreshToken: string) {
 
   // 删除旧的access token
   await prisma.oauth_access_tokens.delete({
-    where: { access_token: refreshTokenRecord.access_token }
+    where: { access_token: refreshTokenRecord.access_token },
   })
 
   // 生成新的refresh token
@@ -259,7 +259,7 @@ async function refreshToken(refreshToken: string) {
       client_id: refreshTokenRecord.client_id,
       user_qq: user.qq,
       expires_at: new Date(Date.now() + 3600 * 1000),
-      scope: refreshTokenRecord.scope
+      scope: refreshTokenRecord.scope,
     },
   })
 
@@ -277,7 +277,7 @@ async function refreshToken(refreshToken: string) {
     token_type: 'Bearer',
     expires_in: 3600,
     refresh_token: newRefreshToken,
-    scope: refreshTokenRecord.scope
+    scope: refreshTokenRecord.scope,
   }
 }
 

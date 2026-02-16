@@ -28,9 +28,7 @@ async function checkUserTerritoryLimit(qq: string) {
   // Yes. `territory_members` has a unique constraint on [qq, territory_id].
 
   if (joined >= MAX_TERRITORIES_PER_USER) {
-    throw new Error(
-      `User ${qq} has reached the maximum limit of ${MAX_TERRITORIES_PER_USER} territories (Owned + Joined).`
-    )
+    throw new Error(`已达到最大领土限制 ${MAX_TERRITORIES_PER_USER} 个`)
   }
 }
 
@@ -93,14 +91,13 @@ export async function updateTerritoryLocation(
     include: { owner: true }, // Check owner
   })
 
-  if (!territory) throw new Error('Territory not found')
-  if (territory.owner_id !== userQq)
-    throw new Error('Only the owner can modify territory location.')
+  if (!territory) throw new Error('领土未找到')
+  if (territory.owner_id !== userQq) throw new Error('只有领地主可以修改领土位置')
 
   const newArea = calculateArea(x1, z1, x2, z2)
   const newCost = calculateCost(newArea)
 
-  if (newArea <= 0) throw new Error('Invalid area size.')
+  if (newArea <= 0) throw new Error('无效的区域大小')
 
   // Overlap Check (Excluding self)
   const existing = await prisma.territories.findMany({
@@ -131,7 +128,7 @@ export async function updateTerritoryLocation(
 
     const overlap = !(maxX <= tMinX || minX >= tMaxX || maxZ <= tMinZ || minZ >= tMaxZ)
     if (overlap) {
-      throw new Error(`Territory overlaps with existing territory ${t.name} (ID: ${t.id})`)
+      throw new Error(`这个领地已经被占用啦`)
     }
   }
 
@@ -139,9 +136,7 @@ export async function updateTerritoryLocation(
   const costDiff = newCost - oldCost
 
   if (costDiff > 0 && territory.credits < costDiff) {
-    throw new Error(
-      `Insufficient territory credits. Need ${costDiff} more. Current pool: ${territory.credits}`
-    )
+    throw new Error(`领土额度不足，还需要 ${costDiff} 个`)
   }
 
   // Transaction
@@ -213,21 +208,21 @@ export async function updateTerritoryLocation(
     }
   })
 
-  return { message: 'Territory location updated. Admin review pending.' }
+  return { message: '领土位置已更新。等待管理员审核' }
 }
 
 // --- Credits / Donation ---
 
 export async function donateToTerritory(territoryId: bigint, userQq: string, amount: number) {
-  if (amount <= 0) throw new Error('Amount must be positive.')
+  if (amount <= 0) throw new Error('金额必须为正数')
 
   const member = await prisma.territory_members.findUnique({
     where: { qq_territory_id: { qq: userQq, territory_id: territoryId } },
   })
-  if (!member) throw new Error('Must be a member or owner to donate.')
+  if (!member) throw new Error('必须是成员或领地主才能捐赠')
 
   const user = await prisma.users.findUnique({ where: { qq: userQq } })
-  if (!user || user.personal_credits < amount) throw new Error('Insufficient personal credits.')
+  if (!user || user.personal_credits < amount) throw new Error('个人积分不足')
 
   // Note: Contribution tracking is crucial
   await prisma.$transaction(async tx => {
@@ -250,28 +245,28 @@ export async function donateToTerritory(territoryId: bigint, userQq: string, amo
     })
   })
 
-  return { message: 'Donation successful.' }
+  return { message: '捐赠成功。' }
 }
 
 // --- Invitations ---
 
 export async function inviteMember(territoryId: bigint, inviterQq: string, inviteeQq: string) {
   const territory = await prisma.territories.findUnique({ where: { id: territoryId } })
-  if (!territory) throw new Error('Territory not found')
-  if (territory.owner_id !== inviterQq) throw new Error('Only the owner can invite members.')
+  if (!territory) throw new Error('领土未找到')
+  if (territory.owner_id !== inviterQq) throw new Error('只有领地主可以邀请成员')
 
   const user = await prisma.users.findUnique({ where: { qq: inviteeQq } })
-  if (!user) throw new Error('User not found')
+  if (!user) throw new Error('用户未找到')
 
   const isMember = await prisma.territory_members.findUnique({
     where: { qq_territory_id: { qq: inviteeQq, territory_id: territoryId } },
   })
-  if (isMember) throw new Error('User is already a member.')
+  if (isMember) throw new Error('该用户已经是成员啦')
 
   const existingInvite = await prisma.invitations.findFirst({
     where: { territory_id: territoryId, invitee_qq: inviteeQq },
   })
-  if (existingInvite) throw new Error('Invitation already sent.')
+  if (existingInvite) throw new Error('邀请已发送')
 
   return await prisma.invitations.create({
     data: {
@@ -284,8 +279,8 @@ export async function inviteMember(territoryId: bigint, inviterQq: string, invit
 
 export async function acceptInvitation(invitationId: bigint, userQq: string) {
   const invite = await prisma.invitations.findUnique({ where: { id: invitationId } })
-  if (!invite) throw new Error('Invitation not found')
-  if (invite.invitee_qq !== userQq) throw new Error('Not your invitation')
+  if (!invite) throw new Error('邀请未找到')
+  if (invite.invitee_qq !== userQq) throw new Error('这不是你的邀请')
 
   await checkUserTerritoryLimit(userQq)
 
@@ -307,10 +302,10 @@ export async function revokeInvitation(invitationId: bigint, userQq: string) {
     where: { id: invitationId },
     include: { territory: true },
   })
-  if (!invite) throw new Error('Invitation not found')
+  if (!invite) throw new Error('邀请未找到')
 
   if (invite.territory.owner_id !== userQq && invite.invitee_qq !== userQq) {
-    throw new Error('Permission denied: You are neither the owner nor the invitee.')
+    throw new Error('权限不足')
   }
 
   return await prisma.invitations.delete({ where: { id: invitationId } })
@@ -320,59 +315,58 @@ export async function getUserInvitations(userQq: string) {
   const invites = await prisma.invitations.findMany({
     where: { invitee_qq: userQq },
     include: { territory: true },
-    orderBy: { created_at: 'desc' }
-  });
-  
+    orderBy: { created_at: 'desc' },
+  })
+
   return invites.map(i => ({
     id: i.id.toString(),
     territory_id: i.territory_id.toString(),
     territory_name: i.territory.name,
     inviter_qq: i.inviter_qq,
     invitee_qq: i.invitee_qq,
-    created_at: i.created_at.toISOString()
-  }));
+    created_at: i.created_at.toISOString(),
+  }))
 }
 
 export async function getTerritoryInvitations(territoryId: bigint, userQq: string) {
-    const territory = await prisma.territories.findUnique({ where: { id: territoryId } });
-    if(!territory) throw new Error("Territory not found");
-    // Only owner (or maybe members?) can see active invitations? Usually only owner/admins.
-    if(territory.owner_id !== userQq) throw new Error("Permission denied");
+  const territory = await prisma.territories.findUnique({ where: { id: territoryId } })
+  if (!territory) throw new Error('领地未找到')
+  // Only owner (or maybe members?) can see active invitations? Usually only owner/admins.
+  if (territory.owner_id !== userQq) throw new Error('权限不足')
 
-    const invites = await prisma.invitations.findMany({
-        where: { territory_id: territoryId },
-        include: { territory: true },
-        orderBy: { created_at: 'desc' }
-    });
-    
-    return invites.map(i => ({
-        id: i.id.toString(),
-        territory_id: i.territory_id.toString(),
-        territory_name: i.territory.name,
-        inviter_qq: i.inviter_qq,
-        invitee_qq: i.invitee_qq,
-        created_at: i.created_at.toISOString()
-    }));
+  const invites = await prisma.invitations.findMany({
+    where: { territory_id: territoryId },
+    include: { territory: true },
+    orderBy: { created_at: 'desc' },
+  })
+
+  return invites.map(i => ({
+    id: i.id.toString(),
+    territory_id: i.territory_id.toString(),
+    territory_name: i.territory.name,
+    inviter_qq: i.inviter_qq,
+    invitee_qq: i.invitee_qq,
+    created_at: i.created_at.toISOString(),
+  }))
 }
 
 // --- Member Management ---
 
 export async function removeMember(territoryId: bigint, memberQq: string, executorQq: string) {
   const territory = await prisma.territories.findUnique({ where: { id: territoryId } })
-  if (!territory) throw new Error('Territory not found')
+  if (!territory) throw new Error('领地未找到')
 
   const isSelfLeave = memberQq === executorQq
   const isOwnerKick = territory.owner_id === executorQq
 
-  if (!isSelfLeave && !isOwnerKick) throw new Error('Permission denied.')
-  if (memberQq === territory.owner_id)
-    throw new Error('Owner cannot leave/kick themselves. Transfer ownership or delete territory.')
+  if (!isSelfLeave && !isOwnerKick) throw new Error('权限不足')
+  if (memberQq === territory.owner_id) throw new Error('所有者不能离开')
 
   const member = await prisma.territory_members.findUnique({
     where: { qq_territory_id: { qq: memberQq, territory_id: territoryId } },
   })
 
-  if (!member) throw new Error('Member not found in this territory.')
+  if (!member) throw new Error('在此领地中未找到成员')
 
   const refundAmount = Math.floor(member.contribution * REFUND_PERCENTAGE)
   const territoryDeduction = member.contribution
@@ -398,7 +392,7 @@ export async function removeMember(territoryId: bigint, memberQq: string, execut
   })
 
   return {
-    message: 'Member removed. Refund processed.',
+    message: '成员已移除，额度已更新',
     refund: refundAmount,
     deduction: territoryDeduction,
   }
@@ -408,8 +402,8 @@ export async function removeMember(territoryId: bigint, memberQq: string, execut
 
 export async function requestDeleteTerritory(territoryId: bigint, userQq: string) {
   const territory = await prisma.territories.findUnique({ where: { id: territoryId } })
-  if (!territory) throw new Error('Territory not found')
-  if (territory.owner_id !== userQq) throw new Error('Only owner can delete territory')
+  if (!territory) throw new Error('领地未找到')
+  if (territory.owner_id !== userQq) throw new Error('权限不足')
 
   // If territory is only in PENDING_CREATE state (never activated), delete immediately and cancel creation task.
   if (territory.status === TerritoryStatus.PENDING_CREATE) {
@@ -465,7 +459,7 @@ export async function requestDeleteTerritory(territoryId: bigint, userQq: string
       await tx.territories.delete({ where: { id: territoryId } })
     })
 
-    return { message: 'Territory creation cancelled and deleted. Credits refunded.' }
+    return { message: '领地创建已取消并删除。积分已退还' }
   }
 
   await prisma.admin_tasks.create({
@@ -475,7 +469,7 @@ export async function requestDeleteTerritory(territoryId: bigint, userQq: string
       payload: {
         territoryId: territoryId.toString(),
         name: territory.name,
-        reason: 'Owner requested deletion',
+        reason: '所有者请求删除',
       },
     },
   })
@@ -485,7 +479,7 @@ export async function requestDeleteTerritory(territoryId: bigint, userQq: string
     data: { status: TerritoryStatus.PENDING_DELETE },
   })
 
-  return { message: 'Deletion requested. Pending admin review.' }
+  return { message: '删除请求已提交，等待管理员审核' }
 }
 
 export async function getUserTerritories(userQq: string) {

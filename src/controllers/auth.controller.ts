@@ -1,17 +1,17 @@
 // controllers/authController.ts
 import { Request, Response } from 'express'
-import { handleAsync } from '../utils/handleAsync.js'
-import { authService } from '../services/index.js'
 import {
-  RegisterBody,
-  LoginBody,
-  RegisterResponse,
-  LoginResponse,
   AuthorizeQuery,
   AuthorizeResponse,
+  LoginBody,
+  LoginResponse,
+  RegisterBody,
+  RegisterResponse,
   TokenBody,
   TokenResponse,
 } from '../schemas/auth.schema.js'
+import { authService } from '../services/index.js'
+import { handleAsync } from '../utils/handleAsync.js'
 
 export async function handleRegister(req: Request, res: Response) {
   handleAsync(
@@ -30,14 +30,14 @@ export async function handleLogin(req: Request, res: Response) {
     async () => {
       const { qq, password } = LoginBody.parse(req.body)
       const tokenData = await authService.login(qq, password)
-      
+
       // 设置响应头存储token到浏览器
       const isProduction = process.env.NODE_ENV === 'production'
       res.setHeader('Set-Cookie', [
         `access_token=${tokenData.access_token}; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=${isProduction ? 'None' : 'Lax'}; Max-Age=${tokenData.expires_in}; Path=/api`,
-        `refresh_token=${tokenData.refresh_token}; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=${isProduction ? 'None' : 'Lax'}; Max-Age=${30 * 24 * 3600}; Path=/api`
+        `refresh_token=${tokenData.refresh_token}; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=${isProduction ? 'None' : 'Lax'}; Max-Age=${30 * 24 * 3600}; Path=/api`,
       ])
-      
+
       return { msg: '登录成功', qq, ...tokenData }
     },
     { response: LoginResponse, errorCode: 401 }
@@ -85,17 +85,17 @@ export async function handleRefreshToken(req: Request, res: Response) {
     async () => {
       const { refresh_token } = req.cookies
       if (!refresh_token) {
-        throw new Error('Refresh token required')
+        throw new Error('需要刷新认证令牌')
       }
       const tokenData = await authService.refreshToken(refresh_token)
-      
+
       // 更新响应头中的cookies
       const isProduction = process.env.NODE_ENV === 'production'
       res.setHeader('Set-Cookie', [
         `access_token=${tokenData.access_token}; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=${isProduction ? 'None' : 'Lax'}; Max-Age=${tokenData.expires_in}; Path=/api`,
-        `refresh_token=${tokenData.refresh_token}; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=${isProduction ? 'None' : 'Lax'}; Max-Age=${30 * 24 * 3600}; Path=/api`
+        `refresh_token=${tokenData.refresh_token}; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=${isProduction ? 'None' : 'Lax'}; Max-Age=${30 * 24 * 3600}; Path=/api`,
       ])
-      
+
       return tokenData
     },
     { response: TokenResponse }

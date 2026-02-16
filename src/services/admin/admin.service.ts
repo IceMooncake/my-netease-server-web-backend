@@ -12,7 +12,7 @@ async function getTasks(status?: AdminTaskStatus) {
 
 async function processTask(taskId: bigint, adminQq: string, approved: boolean, message?: string) {
   const task = await prisma.admin_tasks.findUnique({ where: { id: taskId } })
-  if (!task || task.status !== AdminTaskStatus.PENDING) throw new Error('Task not valid')
+  if (!task || task.status !== AdminTaskStatus.PENDING) throw new Error('任务无效')
 
   const payload = task.payload as any
   const tid = BigInt(payload.territoryId)
@@ -46,7 +46,7 @@ async function processTask(taskId: bigint, adminQq: string, approved: boolean, m
       if (territory) {
         await notificationService.createNotification(
           territory.owner_id,
-          `Your territory "${territory.name}" has been approved and is now active.`
+          `您的领土 "${territory.name}" 已获批准，现在处于活跃状态。`
         )
       }
     } else {
@@ -69,7 +69,7 @@ async function processTask(taskId: bigint, adminQq: string, approved: boolean, m
         })
         await notificationService.createNotification(
           territory.owner_id,
-          `Your territory creation request for "${territory.name}" was rejected. Reason: ${reason}`
+          `您创建领地 "${territory.name}" 的请求被拒绝。原因：${reason}`
         )
       }
     }
@@ -82,7 +82,7 @@ async function processTask(taskId: bigint, adminQq: string, approved: boolean, m
       if (territory) {
         await notificationService.createNotification(
           territory.owner_id,
-          `Your territory expansion for "${territory.name}" has been approved.`
+          `您的领地 "${territory.name}" 扩展已获批准。`
         )
       }
     } else {
@@ -109,7 +109,7 @@ async function processTask(taskId: bigint, adminQq: string, approved: boolean, m
         })
         await notificationService.createNotification(
           territory.owner_id,
-          `Your territory update request for "${territory.name}" was rejected. Reason: ${reason}`
+          `您更新领地 "${territory.name}" 的请求被拒绝。原因：${reason}`
         )
       }
     }
@@ -119,7 +119,7 @@ async function processTask(taskId: bigint, adminQq: string, approved: boolean, m
         // Notify owner before deletion (since owner defaults to members too? Wait owner is in members?)
         await notificationService.createNotification(
           territory.owner_id,
-          `Your territory "${territory.name}" has been deleted as requested.`
+          `您的领地 "${territory.name}" 已按请求删除。`
         )
 
         // Refund members (70% of contribution)
@@ -144,7 +144,7 @@ async function processTask(taskId: bigint, adminQq: string, approved: boolean, m
         })
         await notificationService.createNotification(
           territory.owner_id,
-          `Your request to delete territory "${territory.name}" was rejected. Reason: ${reason}`
+          `您删除领地 "${territory.name}" 的请求被拒绝。原因：${reason}`
         )
       }
     }

@@ -20,6 +20,6 @@ export async function markRead(req: Request, res: Response) {
     const { id } = req.params
     const user = req.user
     await notificationService.markAsRead(BigInt(id), user.qq)
-    return { message: 'Marked as read.' }
+    return { message: '已标记为已读' }
   })
 }
