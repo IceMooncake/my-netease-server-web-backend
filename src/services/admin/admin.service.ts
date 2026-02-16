@@ -46,7 +46,7 @@ async function processTask(taskId: bigint, adminQq: string, approved: boolean, m
       if (territory) {
         await notificationService.createNotification(
           territory.owner_id,
-          `您的领土 "${territory.name}" 已获批准，现在处于活跃状态。`
+          `您的领土 "${territory.name}" 创建成功啦`
         )
       }
     } else {
@@ -82,7 +82,7 @@ async function processTask(taskId: bigint, adminQq: string, approved: boolean, m
       if (territory) {
         await notificationService.createNotification(
           territory.owner_id,
-          `您的领地 "${territory.name}" 扩展已获批准。`
+          `您的领地 "${territory.name}" 范围更新完成啦`
         )
       }
     } else {

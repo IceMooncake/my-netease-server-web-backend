@@ -136,7 +136,7 @@ export async function updateTerritoryLocation(
   const costDiff = newCost - oldCost
 
   if (costDiff > 0 && territory.credits < costDiff) {
-    throw new Error(`领土额度不足，还需要 ${costDiff} 个`)
+    throw new Error(`领土额度不足，还需要 ${costDiff - territory.credits} 个`)
   }
 
   // Transaction
