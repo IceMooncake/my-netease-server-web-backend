@@ -1,6 +1,6 @@
 // src/schemas/admin.schema.ts
-import { z } from 'zod'
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi'
+import { z } from 'zod'
 extendZodWithOpenApi(z)
 
 export const AdminTaskStatusEnum = z.enum(['PENDING', 'DONE', 'IGNORED', 'REJECTED']).openapi('AdminTaskStatus')
@@ -8,6 +8,7 @@ export const AdminTaskTypeEnum = z.enum([
   'REVIEW_TERRITORY_CREATE',
   'REVIEW_TERRITORY_DELETE',
   'REVIEW_TERRITORY_UPDATE',
+  'REVIEW_MEMBER_NICKNAME_CHANGE',
   'CLEANUP_USER',
   'RECYCLE_TERRITORY_SIZE'
 ]).openapi('AdminTaskType')

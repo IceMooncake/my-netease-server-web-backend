@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    command: pnpm start
+    ports:
+      - "3000:3000"
+    environment:
+      # - NODE_ENV=production
+      - NODE_ENV=development
+      - PORT=3000
+      # Database configuration - adjust these values
+      - DB_HOST=localhost
+      - DB_USER=user
+      - DB_PASSWORD=dbpassword
+      - DB_NAME=dbname
+      - DATABASE_URL=mysql://user:dbpassword@localhost:3306/dbname
+      # Napcat configuration
+      - NAPCAT_URL=ws://localhost:6098
+      - NAPCAT_TOKEN=napcatToken
+      - NAPCAT_GROUPID=123456789
+      # JWT secret - generate a secure one
+      - JWT_SECRET=test-secret-key
+      # CORS origin for production
+      - ALLOW_ORIGIN=http://localhost
+    restart: unless-stopped
+
+  # Optional: If you want to include MySQL in the compose
+  # db:
+  #   image: mysql:8.0
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: rootpassword
+  #     MYSQL_DATABASE: ice_town
+  #     MYSQL_USER: user
+  #     MYSQL_PASSWORD: password
+  #   ports:
+  #     - "3306:3306"
+  #   volumes:
+  #     - mysql_data:/var/lib/mysql
+
+# volumes:
+#   mysql_data:

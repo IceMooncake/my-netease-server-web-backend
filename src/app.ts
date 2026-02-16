@@ -1,16 +1,16 @@
+import http from 'http'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import http from 'http'
 
 // import routers
-import express from 'express'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
+import express from 'express'
 import { Server as SocketIOServer } from 'socket.io'
 import authRoutes from './routes/index.js'
 
 // Importing jobs and listeners
-import { syncGroupMember, cleanupMembers } from './jobs/index.js'
+import { cleanupMembers, syncGroupMember } from './jobs/index.js'
 import { groupSync } from './listeners/index.js'
 import { napcatService } from './services/index.js'
 
@@ -56,7 +56,14 @@ app.use('/api', authRoutes)
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 app.get('/openapi.json', (_, res) => {
-  res.sendFile(path.join(__dirname, '../docs/openapi.json'))
+  const filePath = path.resolve(__dirname, '../../docs/openapi.json')
+  console.log('Serving OpenAPI from:', filePath)
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error('Error serving OpenAPI:', err)
+      res.status(404).send('OpenAPI file not found')
+    }
+  })
 })
 
 // Socket.IO connection handling
