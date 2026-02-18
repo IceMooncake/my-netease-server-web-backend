@@ -101,10 +101,7 @@ export default function () {
     const qq = ctx.user_id.toString()
 
     // 每日签到逻辑
-    try {
-      if (await creditService.checkIn(qq)) {
-      }
-    } catch {}
+    creditService.checkIn(qq)
 
     const code = ctx.raw_message.trim()
     // 验证成功，标记为已验证并创建用户

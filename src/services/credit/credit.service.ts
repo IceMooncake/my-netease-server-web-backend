@@ -74,9 +74,11 @@ export async function checkIn(userId: string): Promise<boolean> {
 
   if (!user) return false
 
-  const today = new Date().toISOString().split('T')[0] // 'YYYY-MM-DD'
+  // Use +8 timezone for daily check comparison
+  const tzOffset = 8 * 60 * 60 * 1000 // +8 timezone offset in ms
+  const today = new Date(Date.now() + tzOffset).toISOString().split('T')[0] // 'YYYY-MM-DD' in +8 timezone
   const lastCheck = user.last_daily_check_in
-    ? user.last_daily_check_in.toISOString().split('T')[0]
+    ? new Date(user.last_daily_check_in.getTime() + tzOffset).toISOString().split('T')[0]
     : null
 
   // If already checked in today, return false
