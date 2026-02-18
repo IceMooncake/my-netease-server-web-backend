@@ -1,6 +1,7 @@
 // Implementation of simplified territory logic
 import prisma from '../../database/prisma.js'
 import { AdminTaskStatus, AdminTaskType, TerritoryStatus } from '../../generated/prisma/enums.js'
+import napcatService from '../napcat/napcat.service.js'
 
 export const MAX_TERRITORIES_PER_USER = 10
 export const REFUND_PERCENTAGE = 0.9
@@ -198,12 +199,26 @@ export async function updateTerritoryLocation(
           ? AdminTaskType.REVIEW_TERRITORY_UPDATE
           : AdminTaskType.REVIEW_TERRITORY_CREATE
 
+      const { napcat } = napcatService
+
       await tx.admin_tasks.create({
         data: {
           type: taskType,
           status: AdminTaskStatus.PENDING,
           payload,
         },
+      })
+
+      napcat.send_msg({
+        user_id: Number(process.env.ADMIN_QQ),
+        message: [
+          {
+            type: 'text',
+            data: {
+              text: `新的领土${taskType === AdminTaskType.REVIEW_TERRITORY_CREATE ? '创建' : '更新'}请求：${territory.name} (ID: ${territoryId})，请前往管理后台审核。`,
+            },
+          }
+        ]
       })
     }
   })
