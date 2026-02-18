@@ -76,7 +76,8 @@ export async function checkIn(userId: string): Promise<boolean> {
 
   // Use +8 timezone for daily check comparison
   const tzOffset = 8 * 60 * 60 * 1000 // +8 timezone offset in ms
-  const today = new Date(Date.now() + tzOffset).toISOString().split('T')[0] // 'YYYY-MM-DD' in +8 timezone
+  const todayDate = new Date(Date.now() + tzOffset)
+  const today = todayDate.toISOString().split('T')[0] // 'YYYY-MM-DD' in +8 timezone
   const lastCheck = user.last_daily_check_in
     ? new Date(user.last_daily_check_in.getTime() + tzOffset).toISOString().split('T')[0]
     : null
@@ -93,7 +94,7 @@ export async function checkIn(userId: string): Promise<boolean> {
   await prisma.users.update({
     where: { qq: userId },
     data: {
-      last_daily_check_in: new Date(),
+      last_daily_check_in: todayDate,
       personal_credits: {
         increment: reward,
       },
