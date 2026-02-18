@@ -34,8 +34,8 @@ export async function handleLogin(req: Request, res: Response) {
       // 设置响应头存储token到浏览器
       const isProduction = process.env.NODE_ENV === 'production';
       res.setHeader('Set-Cookie', [
-        `access_token=${tokenData.access_token}; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=${isProduction ? 'None' : 'Lax'}; Max-Age=${tokenData.expires_in}; Path=/api`,
-        `refresh_token=${tokenData.refresh_token}; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=${isProduction ? 'None' : 'Lax'}; Max-Age=${30 * 24 * 3600}; Path=/api`,
+        `access_token=${tokenData.access_token}; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=${isProduction ? 'Strict' : 'Lax'}; Max-Age=${tokenData.expires_in}; Path=/api`,
+        `refresh_token=${tokenData.refresh_token}; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=${isProduction ? 'Strict' : 'Lax'}; Max-Age=${30 * 24 * 3600}; Path=/api`,
       ])
 
       return { msg: '登录成功', qq, ...tokenData }
