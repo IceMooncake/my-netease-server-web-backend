@@ -7,6 +7,7 @@ import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express from 'express'
 import { Server as SocketIOServer } from 'socket.io'
+import { errorHandler, generalLimiter, securityHeaders } from './middlewares/security.js'
 import authRoutes from './routes/index.js'
 
 // Importing jobs and listeners
@@ -32,9 +33,14 @@ const server = http.createServer(app)
 // Initialize Socket.IO
 const io = new SocketIOServer(server, {
   cors: {
-    origin: process.env.NODE_ENV === 'development' ? (process.env.ALLOW_ORIGIN ? process.env.ALLOW_ORIGIN.split(',').map(origin => origin.trim()) : []) : false,
-    credentials: true
-  }
+    origin:
+      process.env.NODE_ENV === 'development'
+        ? process.env.ALLOW_ORIGIN
+          ? process.env.ALLOW_ORIGIN.split(',').map(origin => origin.trim())
+          : []
+        : false,
+    credentials: true,
+  },
 })
 
 // Make io available globally for services
@@ -42,12 +48,20 @@ global.io = io
 
 // Enable CORS if in development environment
 if (process.env.NODE_ENV === 'development') {
-  app.use(cors({
-    origin: process.env.ALLOW_ORIGIN ? process.env.ALLOW_ORIGIN.split(',').map(origin => origin.trim()) : [], // Allow all origins in development
-    credentials: true
-  }))
+  app.use(
+    cors({
+      origin: process.env.ALLOW_ORIGIN
+        ? process.env.ALLOW_ORIGIN.split(',').map(origin => origin.trim())
+        : [], // Allow all origins in development
+      credentials: true,
+    })
+  )
 }
 
+// Helmet 安全头
+app.use(securityHeaders)
+// 通用限流
+app.use(generalLimiter)
 app.use(cookieParser())
 app.use(express.json())
 app.use('/api', authRoutes)
@@ -58,7 +72,7 @@ const __dirname = path.dirname(__filename)
 app.get('/openapi.json', (_, res) => {
   const filePath = path.resolve(__dirname, '../../docs/openapi.json')
   console.log('Serving OpenAPI from:', filePath)
-  res.sendFile(filePath, (err) => {
+  res.sendFile(filePath, err => {
     if (err) {
       console.error('Error serving OpenAPI:', err)
       res.status(404).send('OpenAPI file not found')
@@ -67,7 +81,7 @@ app.get('/openapi.json', (_, res) => {
 })
 
 // Socket.IO connection handling
-io.on('connection', (socket) => {
+io.on('connection', socket => {
   console.log('User connected:', socket.id)
 
   socket.on('disconnect', () => {
@@ -75,6 +89,6 @@ io.on('connection', (socket) => {
   })
 })
 
-// app.use(errorHandler);
+app.use(errorHandler)
 
 export default server

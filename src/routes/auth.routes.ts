@@ -5,6 +5,7 @@ import { z } from 'zod'
 import * as controller from '../controllers/auth.controller.js'
 import * as userController from '../controllers/user.controller.js'
 import { authenticateToken } from '../middlewares/auth.js'
+import { loginLimiter } from '../middlewares/security.js'
 import {
   AuthorizeQuery,
   AuthorizeResponse,
@@ -17,7 +18,7 @@ import {
   TokenBody,
   TokenResponse,
   UpdateNicknameBody,
-  UserProfileResponse
+  UserProfileResponse,
 } from '../schemas/auth.schema.js'
 import { RouteRegistrar } from '../utils/routeRegistrar.js'
 
@@ -60,7 +61,7 @@ registrar.register(router, {
       content: { 'application/json': { schema: LoginResponse } },
     },
   },
-  handler: controller.handleLogin,
+  handler: [loginLimiter, controller.handleLogin],
 })
 
 registrar.register(router, {

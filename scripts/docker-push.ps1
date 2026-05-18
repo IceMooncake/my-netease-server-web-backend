@@ -1,7 +1,7 @@
 param(
     [string]$SourceImage = "minecraft-qq-backend:latest",
     [string]$TargetImage = "icemooncake/mc-qq-backend",
-    [string]$Tag = "v1.0",
+    [string]$Tag = "v1.1.0",
     [string]$BuildContext = ".",
     [switch]$SkipBuild
 )
