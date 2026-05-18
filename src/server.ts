@@ -7,4 +7,5 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`)
   console.log(`📄 OpenAPI documentation available at http://localhost:${PORT}/openapi.json`)
   console.log(`🔌 WebSocket server ready`)
+  console.log(`version: ${process.env.npm_package_version}`)
 })
