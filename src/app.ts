@@ -2,13 +2,16 @@ import http from 'http'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
-// import routers
+// tRPC
+import { createExpressMiddleware } from '@trpc/server/adapters/express'
+import { createContext } from './trpc/context.js'
+import { appRouter } from './trpc/routers/index.js'
+
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express from 'express'
 import { Server as SocketIOServer } from 'socket.io'
 import { errorHandler, generalLimiter, securityHeaders } from './middlewares/security.js'
-import authRoutes from './routes/index.js'
 
 // Importing jobs and listeners
 import { cleanupMembers, syncGroupMember } from './jobs/index.js'
@@ -64,9 +67,18 @@ app.use(securityHeaders)
 app.use(generalLimiter)
 app.use(cookieParser())
 app.use(express.json())
-app.use('/api', authRoutes)
 
-// openapi.json
+// ── tRPC 挂载 ─────────────────────────────────────────────
+// tRPC 替代了原来的 REST 路由，挂载在 /api/trpc
+app.use(
+  '/api/trpc',
+  createExpressMiddleware({
+    router: appRouter,
+    createContext,
+  })
+)
+
+// openapi.json (保留兼容)
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 app.get('/openapi.json', (_, res) => {
