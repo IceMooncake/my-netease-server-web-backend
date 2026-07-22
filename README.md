@@ -1,3 +1,6 @@
+The project has been refactored into a single repository.
+Please check [Minecraft QQ Territory Platform](https://github.com/IceMooncake/minecraft-qq-territory-platform)
+
 # Minecraft to QQ Manager Backend
 
 ## 本地开发
